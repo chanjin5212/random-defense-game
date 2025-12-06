@@ -3,12 +3,21 @@
 function showMainView() {
     document.getElementById('main-view').classList.add('active');
     document.getElementById('cell-view').classList.remove('active');
+    document.getElementById('upgrade-view').classList.remove('active');
 }
 
 function showCellView() {
     document.getElementById('main-view').classList.remove('active');
     document.getElementById('cell-view').classList.add('active');
+    document.getElementById('upgrade-view').classList.remove('active');
     updateCellTowerList();
+}
+
+function showUpgradeView() {
+    document.getElementById('main-view').classList.remove('active');
+    document.getElementById('cell-view').classList.remove('active');
+    document.getElementById('upgrade-view').classList.add('active');
+    updateTowerUpgradeList();
 }
 
 // 뒤로가기 버튼 이벤트

@@ -1,12 +1,36 @@
 // 타워 UI 함수 (새 레이아웃용)
+// console.log("Tower UI Loaded - vDebug1");
+// alert("시스템 업데이트 완료: 판매 기능 재활성화됨");
+
+// 이벤트 위임 방식으로 판매 버튼 처리 (중복 방지 및 동적 요소 대응)
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.btn-sell');
+    if (!btn) return;
+
+    e.stopPropagation(); // 버튼 클릭 시 다른 이벤트 간섭 차단
+
+    const x = parseInt(btn.dataset.x, 10);
+    const y = parseInt(btn.dataset.y, 10);
+    const index = parseInt(btn.dataset.index, 10);
+
+    if (!isNaN(x) && !isNaN(y) && !isNaN(index)) {
+        sellTowerAtIndex(x, y, index);
+    }
+});
 
 function showTowerDetails(tower) {
     const details = tower.getDetails();
 
+    // 데미지 표시 형식 결정
+    let damageDisplay = `${details.damage}`;
+    if (details.bonusDamage > 0) {
+        damageDisplay = `${details.baseDamage}+${details.bonusDamage}`;
+    }
+
     const message = `
 타워: ${details.name}
 등급: ${details.rarity}
-데미지: ${details.damage}
+데미지: ${damageDisplay}
 공격속도: ${details.attackSpeed}초
 사정거리: ${details.range}
 효과: ${details.effect}
@@ -46,19 +70,43 @@ function updateCellTowerList() {
         return;
     }
 
+    // 이벤트 위임 방식으로 판매 버튼 처리 (인라인 onclick 제거)
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-sell');
+        if (!btn) return;
+
+        const x = parseInt(btn.dataset.x);
+        const y = parseInt(btn.dataset.y);
+        const index = parseInt(btn.dataset.index);
+
+        sellTowerAtIndex(x, y, index);
+    });
+
+
     let html = '';
     towers.forEach((tower, index) => {
         const details = tower.getDetails();
+
+        // 데미지 표시 형식 결정
+        let damageDisplay = `${details.damage}`;
+        if (details.bonusDamage > 0) {
+            damageDisplay = `${details.baseDamage}+<span style="color: #10B981;">${details.bonusDamage}</span>`;
+        }
+
         html += `
-            <div class="tower-item" 
-                 style="border-left-color: ${tower.rarityData.color};"
-                 onclick="showTowerDetails(window.game.towerManager.grid[${y}][${x}][${index}])">
-                <div class="tower-item-name" style="color: ${tower.rarityData.color};">
-                    ${details.name}
+            <div class="tower-item" style="border-left-color: ${tower.rarityData.color}; display: flex; justify-content: space-between; align-items: center; padding: 8px; margin-bottom: 8px; background: rgba(0,0,0,0.2); border-left-width: 4px; border-left-style: solid; border-radius: 4px; pointer-events: none; cursor: default;">
+                <div class="tower-info" style="flex: 1;">
+                    <div class="tower-item-name" style="color: ${tower.rarityData.color}; font-weight: bold;">
+                        ${details.name}
+                    </div>
+                    <div class="tower-item-stats" style="font-size: 0.8em; opacity: 0.8;">
+                        ${details.rarity} | Dmg: ${damageDisplay}
+                    </div>
                 </div>
-                <div class="tower-item-stats">
-                    ${details.rarity} | 데미지: ${details.damage} | 사거리: ${details.range}
-                </div>
+                <!-- z-index를 100으로 높이고 position:relative 추가하여 최상단 노출 보장 -->
+                <button class="btn-sell" data-x="${x}" data-y="${y}" data-index="${index}" style="background: #ef4444; border: none; border-radius: 4px; color: white; padding: 6px 12px; font-size: 0.9em; cursor: pointer; margin-left: 8px; flex-shrink: 0; min-width: 70px; z-index: 100; position: relative; pointer-events: auto;">
+                    판매 <span style="font-weight: bold; color: #fbbf24;">${tower.sellPrice}G</span>
+                </button>
             </div>
         `;
     });
@@ -66,11 +114,46 @@ function updateCellTowerList() {
     listDiv.innerHTML = html;
 }
 
-// updateGameUI에 자동으로 추가
-if (typeof updateGameUI !== 'undefined') {
-    const originalUpdateGameUI = updateGameUI;
-    updateGameUI = function () {
-        originalUpdateGameUI();
-        updateCellTowerList();
-    };
+function sellTowerAtIndex(x, y, index) {
+    if (!window.game) {
+        alert('게임이 실행 중이 아닙니다.');
+        return;
+    }
+
+    console.log(`판매 시도: (${x}, ${y}) 인덱스 ${index}`);
+
+    // 타워가 존재하는지 확인
+    const towers = window.game.towerManager.grid[y][x];
+    if (!towers || !towers[index]) {
+        alert('타워 정보를 찾을 수 없습니다.');
+        return;
+    }
+
+    const tower = towers[index];
+
+    if (confirm(`${tower.rarityData.name} 타워를 ${tower.sellPrice}G에 판매하시겠습니까?`)) {
+        try {
+            // 디버깅: 메서드 존재 여부 확인
+            if (typeof window.game.towerManager.sellTower !== 'function') {
+                alert('오류: sellTower 메서드가 없습니다! 새로고침 해보세요.');
+                return;
+            }
+
+            const success = window.game.towerManager.sellTower(tower);
+            if (success) {
+                showToast(`타워 판매 완료! +${tower.sellPrice}G`, 'success');
+            } else {
+                alert('판매 실패: 내부 로직 오류 (TowerManager returned false)');
+            }
+        } catch (e) {
+            alert('판매 중 오류 발생: ' + e.message);
+            console.error(e);
+        }
+        updateCellTowerList(); // 목록 갱신
+    }
 }
+
+// 전역 스코프로 노출
+window.showTowerDetails = showTowerDetails;
+window.sellTowerAtIndex = sellTowerAtIndex;
+window.updateCellTowerList = updateCellTowerList;

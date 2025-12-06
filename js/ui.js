@@ -6,6 +6,13 @@ function initUI() {
     document.getElementById('lobby-btn').addEventListener('click', returnToLobby);
     document.getElementById('mission-boss-btn').addEventListener('click', spawnMissionBoss);
 
+    // 관리자 기능
+    const adminStartBtn = document.getElementById('admin-start-btn');
+    if (adminStartBtn) adminStartBtn.addEventListener('click', startAdminGame);
+
+    const adminSpawnBtn = document.getElementById('admin-spawn-btn');
+    if (adminSpawnBtn) adminSpawnBtn.addEventListener('click', handleAdminSpawn);
+
     initGachaUI();
     initUpgradeUI();
     initBattlePassUI();
@@ -109,6 +116,11 @@ function updateGameUI() {
         singleBtn.disabled = !hasSelection || !hasGoldForSingle || cellFull;
         tenBtn.disabled = !hasSelection || !hasGoldForTen || cellFull;
     }
+
+    // 타워 목록 업데이트
+    if (typeof updateCellTowerList === 'function') {
+        updateCellTowerList();
+    }
 }
 
 function showGameOver() {
@@ -149,8 +161,70 @@ function showGameOver() {
 function startGame() {
     showScreen('game-screen');
     if (window.game) {
-        window.game.start();
+        window.game.start(false); // 일반 모드
+
+        // 관리자 패널 숨김
+        const adminPanel = document.getElementById('admin-panel');
+        if (adminPanel) adminPanel.style.display = 'none';
+
+        // 헤더 복구
+        const hudTop = document.querySelector('.hud-top');
+        if (hudTop) hudTop.style.display = '';
     }
+}
+
+function startAdminGame() {
+    showScreen('game-screen');
+    if (window.game) {
+        window.game.start(true); // 관리자 모드
+
+        // 관리자 패널 표시
+        const adminPanel = document.getElementById('admin-panel');
+        if (adminPanel) adminPanel.style.display = 'block';
+
+        // 헤더 숨김 (관리자 모드 불필요)
+        const hudTop = document.querySelector('.hud-top');
+        if (hudTop) hudTop.style.display = 'none';
+    }
+}
+
+function handleAdminSpawn() {
+    if (!window.game) return;
+
+    // 선택된 칸 확인
+    if (!window.game.towerManager.selectedCell) {
+        showToast('먼저 칸을 클릭하여 선택하세요!', 'warning');
+        return;
+    }
+
+    const { x, y } = window.game.towerManager.selectedCell;
+    const cellCount = window.game.towerManager.getCellTowerCount(x, y);
+
+    if (cellCount >= CONFIG.GAME.TOWERS_PER_SLOT) {
+        showToast('이 칸은 가득 찼습니다! (최대 10개)', 'warning');
+        return;
+    }
+
+    // 선택된 등급과 타워 타입 가져오기
+    const raritySelect = document.getElementById('admin-rarity-select');
+    const towerSelect = document.getElementById('admin-tower-select');
+
+    const selectedRarity = raritySelect.value;
+    const selectedTower = towerSelect.value;
+
+    // 타워 추가
+    const addResult = window.game.towerManager.addTowerToSelectedCell(selectedTower, selectedRarity);
+
+    if (addResult.success) {
+        const rarityData = CONFIG.RARITY[selectedRarity];
+        const towerData = CONFIG.TOWERS[selectedTower];
+        showToast(`🔧 ${rarityData.name} ${towerData.name} 소환 완료!`, 'success');
+    } else {
+        showToast(addResult.reason, 'error');
+    }
+
+    // UI 업데이트
+    window.game.updateUI();
 }
 
 function restartGame() {

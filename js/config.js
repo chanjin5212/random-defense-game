@@ -3,7 +3,7 @@
 const CONFIG = {
     // 게임 기본 설정
     GAME: {
-        MAX_ROUNDS: 100,
+        MAX_ROUNDS: Infinity, // 무한 라운드
         ROUND_DURATION: 30, // 초
         GRID_ROWS: 5, // 그리드 행 수
         GRID_COLS: 8, // 그리드 열 수
@@ -24,77 +24,56 @@ const CONFIG = {
 
     // 등급 시스템
     RARITY: {
-        COMMON: { name: '일반', multiplier: 1.0, color: '#9CA3AF', probability: 0.60 },
-        UNCOMMON: { name: '희귀', multiplier: 1.2, color: '#10B981', probability: 0.20 },
-        RARE: { name: '레어', multiplier: 1.5, color: '#3B82F6', probability: 0.10 },
-        EPIC: { name: '에픽', multiplier: 2.0, color: '#8B5CF6', probability: 0.05 },
-        UNIQUE: { name: '유니크', multiplier: 2.7, color: '#F59E0B', probability: 0.03 },
-        LEGENDARY: { name: '레전드', multiplier: 3.5, color: '#EF4444', probability: 0.015 },
-        MYTHIC: { name: '미스틱', multiplier: 4.5, color: '#EC4899', probability: 0.004 },
-        DIVINE: { name: '신화', multiplier: 6.0, color: '#FBBF24', probability: 0.0009 },
-        TRANSCENDENT: { name: '초월', multiplier: 8.0, color: '#06B6D4', probability: 0.0001 }
+        COMMON: { name: '일반', multiplier: 1.0, color: '#94A3B8', probability: 0.60, sellPrice: 5 },
+        UNCOMMON: { name: '희귀', multiplier: 1.5, color: '#22C55E', probability: 0.25, sellPrice: 15 },
+        RARE: { name: '레어', multiplier: 3.0, color: '#3B82F6', probability: 0.10, sellPrice: 40 },
+        EPIC: { name: '에픽', multiplier: 10.0, color: '#A855F7', probability: 0.04, sellPrice: 100 },
+        UNIQUE: { name: '유니크', multiplier: 50.0, color: '#E879F9', probability: 0.008, sellPrice: 250 },
+        LEGENDARY: { name: '레전드', multiplier: 200.0, color: '#F43F5E', probability: 0.0019, sellPrice: 800 },
+        MYTHIC: { name: '미스틱', multiplier: 500.0, color: '#F59E0B', probability: 0.00008, sellPrice: 2000 },
+        DIVINE: { name: '신화', multiplier: 1500.0, color: '#FBBF24', probability: 0.000019, sellPrice: 5000 },
+        TRANSCENDENT: { name: '초월', multiplier: 5000.0, color: '#06B6D4', probability: 0.000001, sellPrice: 10000 }
     },
 
-    // 타워 정의 (5종류만)
+    // 타워 정의 (3종류)
     TOWERS: {
-        SINGLE: {
+        STANDARD: {
             id: 1,
-            name: '단일 타워',
+            name: '일반 타워',
             type: 'attack',
-            baseDamage: 10,
-            attackSpeed: 1.0,
+            baseDamage: 20, // 15 -> 20 (상향)
+            attackSpeed: 0.8, // 1.0 -> 0.8 (상향)
             range: 450,
-            description: '가장 가까운 적 1명 공격',
+            description: '평범한 공격력과 공속',
             effect: 'single'
         },
-        RAPID: {
+        SPLASH: {
             id: 2,
-            name: '연사 타워',
+            name: '스플래시 타워',
             type: 'attack',
-            baseDamage: 5,
-            attackSpeed: 0.5,
-            range: 360,
-            description: '초고속 단일 연사',
-            effect: 'rapid'
-        },
-        EXPLOSIVE: {
-            id: 3,
-            name: '폭발 타워',
-            type: 'attack',
-            baseDamage: 25,
-            attackSpeed: 1.6,
-            range: 420,
-            description: '주변 범위 AOE 공격',
-            effect: 'aoe',
-            aoeRadius: 80
-        },
-        PIERCING: {
-            id: 4,
-            name: '관통 타워',
-            type: 'attack',
-            baseDamage: 12,
+            baseDamage: 4, // 10 -> 4 (대폭 하향)
             attackSpeed: 1.2,
-            range: 540,
-            description: '일직선 관통 4명',
-            effect: 'pierce',
-            pierceCount: 4
+            range: 400,
+            description: '범위 공격으로 다수 처치',
+            effect: 'aoe',
+            aoeRadius: 100
         },
         SNIPER: {
-            id: 5,
+            id: 3,
             name: '저격 타워',
             type: 'attack',
-            baseDamage: 35,
-            attackSpeed: 2.2,
-            range: 750,
-            description: '체력 가장 높은 적 우선 공격',
+            baseDamage: 100, // 50 -> 100 (대폭 상향)
+            attackSpeed: 2.0, // 2.5 -> 2.0 (상향)
+            range: 700,
+            description: '강력한 단일 공격',
             effect: 'sniper'
         }
     },
 
     // 몬스터 스케일링
     MONSTER: {
-        BASE_HP: 100,
-        HP_SCALING: 1.08, // HP = 100 × (1.08 ^ (round-1))
+        BASE_HP: 200,
+        HP_SCALING: 1.12, // HP = 200 × (1.12 ^ (round-1))
         BASE_SPEED: 1.0,
         MAX_SPEED: 2.5,
         BASE_GOLD: 1,
@@ -103,16 +82,14 @@ const CONFIG = {
 
     // 보스 설정
     BOSS: {
-        ROUNDS: [25, 50, 75, 100],
-        BASE_HP: 2000,
-        HP_SCALING: 1.1, // BossHP = 2000 × (1.1 ^ (boss_round-1))
+        INTERVAL: 25, // 25라운드마다 보스 등장
+        BASE_HP: 10000,
+        HP_SCALING: 1.15, // BossHP = 10000 × (1.15 ^ (boss_round-1))
         DEFENSE: 0.3, // 30% 방어막
         SPEED_MULTIPLIER: 0.6, // 보스는 느림
         REWARDS: {
-            25: 50,
-            50: 150,
-            75: 300,
-            100: 800
+            // 보스 처치 시 보상 (기본값)
+            DEFAULT: 1000
         },
         ABILITIES: {
             25: ['regen'], // 체력 재생 1%/초
@@ -165,6 +142,107 @@ const CONFIG = {
             costScaling: 1.12,
             maxLevel: 50,
             valuePerLevel: 1
+        }
+    },
+
+    // 타워 강화 설정 (타워 종류별)
+    TOWER_UPGRADES: {
+        STANDARD: {
+            name: '일반 타워 강화',
+            baseCost: 10,
+            costScaling: 1.10,
+            maxLevel: 100,
+            damagePerLevel: 100 // 레벨당 100% 증가
+        },
+        SPLASH: {
+            name: '스플래시 타워 강화',
+            baseCost: 10,
+            costScaling: 1.10,
+            maxLevel: 100,
+            damagePerLevel: 100
+        },
+        SNIPER: {
+            name: '저격 타워 강화',
+            baseCost: 10,
+            costScaling: 1.10,
+            maxLevel: 100,
+            damagePerLevel: 100
+        }
+    },
+
+    // 타워 특수 기술 (등급별)
+    TOWER_SKILLS: {
+        // 스플래시 타워
+        SPLASH: {
+            MYTHIC: {
+                name: 'Frozen Field (빙결 지대)',
+                type: 'chance',
+                chance: 0.15, // 15%
+                duration: 1.5, // 1.5초 빙결
+                description: '공격 시 15% 확률로 적을 1.5초간 빙결'
+            },
+            DIVINE: {
+                name: 'Meteor (메테오)',
+                type: 'count',
+                count: 4, // 4회 공격마다
+                damageMult: 5.0, // 500% 데미지
+                radius: 200, // 넓은 범위
+                description: '4회 공격마다 강력한 메테오 소환'
+            },
+            TRANSCENDENT: {
+                name: 'Armageddon (아마겟돈)',
+                type: 'cooldown',
+                cooldown: 8.0, // 8초마다
+                damageMult: 2.0, // 200% 데미지
+                description: '8초마다 화면 전체 적에게 3초간 200% 지속 피해'
+            }
+        },
+        // 저격 타워
+        SNIPER: {
+            MYTHIC: {
+                name: 'Headshot (헤드샷)',
+                type: 'chance',
+                chance: 0.10, // 10%
+                damageMult: 5.0, // 5배 데미지
+                description: '10% 확률로 5배의 치명타 피해'
+            },
+            DIVINE: {
+                name: 'Executioner (처형인)',
+                type: 'passive',
+                hpThreshold: 0.5, // HP 50% 이하
+                damageMult: 2.0, // 데미지 2배
+                description: '체력 50% 이하 적에게 2배 피해'
+            },
+            TRANSCENDENT: {
+                name: 'Orbital Laser (궤도 레이저)',
+                type: 'cooldown',
+                cooldown: 4.0, // 4초마다
+                damageMult: 20.0, // 2000% 데미지
+                description: '4초마다 궤도 레이저 발사 (극딜)'
+            }
+        },
+        // 일반 타워
+        STANDARD: {
+            MYTHIC: {
+                name: 'Multi-Shot (멀티샷)',
+                type: 'passive',
+                targetCount: 3, // 3마리 동시 공격
+                description: '한 번에 3발의 투사체 발사'
+            },
+            DIVINE: {
+                name: 'Overdrive (오버드라이브)',
+                type: 'cooldown',
+                cooldown: 10.0, // 10초마다
+                duration: 5.0, // 5초 지속
+                speedMult: 2.0, // 공속 2배 (딜레이 절반)
+                description: '10초마다 5초간 공격속도 2배'
+            },
+            TRANSCENDENT: {
+                name: 'Doppelganger (도플갱어)',
+                type: 'passive',
+                cloneDamageMult: 0.5, // 본체의 50% 데미지 추가 타격
+                description: '매 공격마다 그림자 분신이 함께 공격 (50% 피해)'
+            }
         }
     },
 

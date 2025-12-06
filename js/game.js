@@ -23,6 +23,15 @@ class Game {
         // 투사체와 파티클
         this.projectiles = [];
         this.particles = [];
+        this.lightningEffects = []; // 번개 이펙트
+        this.beamEffects = []; // 레이저/빔 이펙트
+
+        // 아마겟돈(Global Shock) 상태
+        this.globalShockTimer = 0;
+        this.globalShockDPS = 0;
+
+        // 게임 루프 바인딩
+        this.gameLoop = this.gameLoop.bind(this);
 
         // 미션 보스
         this.missionBossCooldown = 0;
@@ -76,7 +85,8 @@ class Game {
         }
     }
 
-    start() {
+    start(isAdmin = false) {
+        this.isAdminMode = isAdmin;
         this.state = 'playing';
         this.currentRound = 1;
         this.roundTimer = CONFIG.GAME.ROUND_DURATION;
@@ -96,12 +106,21 @@ class Game {
 
         this.gold = CONFIG.ECONOMY.STARTING_GOLD + this.accountStats.STARTING_GOLD;
 
+        // 초기화 먼저 실행
         this.monsterManager.clear();
         this.towerManager.clear();
         this.projectiles = [];
         this.particles = [];
 
-        this.startRound();
+        if (this.isAdminMode) {
+            this.gold = 999999; // 테스트용 무한 골드
+            this.spawnDummyMonsters();
+            showToast('🔧 관리자 샌드박스 모드 시작', 'warning');
+            this.updateUI();
+        } else {
+            this.startRound();
+        }
+
         this.gameLoop();
     }
 
@@ -118,7 +137,8 @@ class Game {
     nextRound() {
         this.currentRound++;
 
-        if (this.currentRound > CONFIG.GAME.MAX_ROUNDS) {
+        // 무한 라운드 모드이므로 게임 클리어 조건 제거 (필요시 MAX_ROUNDS 설정 복구 가능)
+        if (CONFIG.GAME.MAX_ROUNDS !== Infinity && this.currentRound > CONFIG.GAME.MAX_ROUNDS) {
             // 게임 클리어!
             showToast('게임 클리어! 축하합니다!', 'success');
             this.gameOver();
@@ -144,8 +164,10 @@ class Game {
     }
 
     update(deltaTime) {
-        // 라운드 타이머
-        this.roundTimer -= deltaTime;
+        // 라운드 타이머 (관리자 모드는 시간 무제한)
+        if (!this.isAdminMode) {
+            this.roundTimer -= deltaTime;
+        }
 
         if (this.roundTimer <= 0) {
             // 라운드 종료 - 몬스터가 남아있어도 다음 라운드로
@@ -182,6 +204,15 @@ class Game {
         // 파티클 업데이트
         this.updateParticles(deltaTime);
 
+        // 번개 이펙트 업데이트
+        this.updateLightningEffects(deltaTime);
+
+        // 빔 이펙트 업데이트
+        this.updateBeamEffects(deltaTime);
+
+        // 아마겟돈(Global Shock) 업데이트
+        this.updateGlobalShock(deltaTime);
+
         // DPS 계산
         this.updateDPS(deltaTime);
 
@@ -194,22 +225,33 @@ class Game {
             projectile.update();
 
             // 타겟 도달 체크
-            if (projectile.hasReachedTarget() && projectile.target && projectile.target.alive) {
-                // 데미지 적용
-                if (projectile.tower) {
-                    const damage = projectile.tower.applyDamageToTarget(projectile.target, projectile.damage);
-                    this.damageDealt += damage;
-
-                    // 파티클 생성
-                    this.createHitParticles(projectile.target.x, projectile.target.y, projectile.color);
+            if (projectile.hasReachedTarget()) {
+                // 커스텀 타격 효과 (메테오 등)
+                if (projectile.onHit) {
+                    projectile.onHit();
+                    projectile.dead = true;
                 }
+                // 일반 타겟 공격
+                else if (projectile.target && projectile.target.alive) {
+                    // 데미지 적용
+                    if (projectile.tower) {
+                        const damage = projectile.tower.applyDamageToTarget(projectile.target, projectile.damage);
+                        this.damageDealt += damage;
 
-                projectile.dead = true;
+                        // 파티클 생성
+                        this.createHitParticles(projectile.target.x, projectile.target.y, projectile.color);
+                    }
+                    projectile.dead = true;
+                } else if (!projectile.target) {
+                    // 타겟 없는 투사체 (그냥 도달하면 삭제)
+                    projectile.dead = true;
+                }
             }
 
-            // 화면 밖으로 나가면 제거
-            if (projectile.x < 0 || projectile.x > this.canvas.width ||
-                projectile.y < 0 || projectile.y > this.canvas.height) {
+            // 화면 밖으로 나가면 제거 (메테오, 아마겟돈 등 화면 밖 시작 고려하여 여유 둠)
+            const margin = (projectile.type === 'meteor' || projectile.type === 'armageddon') ? 1000 : 50;
+            if (projectile.x < -margin || projectile.x > this.canvas.width + margin ||
+                projectile.y < -margin || projectile.y > this.canvas.height + margin) {
                 projectile.dead = true;
             }
         });
@@ -220,6 +262,52 @@ class Game {
     updateParticles(deltaTime) {
         this.particles.forEach(particle => particle.update());
         this.particles = this.particles.filter(p => !p.isDead());
+    }
+
+    updateLightningEffects(deltaTime) {
+        this.lightningEffects.forEach(lightning => {
+            lightning.life -= deltaTime;
+        });
+        this.lightningEffects = this.lightningEffects.filter(l => l.life > 0);
+    }
+
+    updateBeamEffects(deltaTime) {
+        if (this.beamEffects) {
+            this.beamEffects.forEach(beam => {
+                beam.life -= deltaTime;
+            });
+            this.beamEffects = this.beamEffects.filter(beam => beam.life > 0);
+        }
+    }
+
+    // 아마겟돈 효과 발동
+    activateGlobalShock(duration, dps) {
+        this.globalShockTimer = duration;
+        this.globalShockDPS = dps;
+    }
+
+    // 아마겟돈 효과 업데이트 (DOT)
+    updateGlobalShock(deltaTime) {
+        if (this.globalShockTimer > 0) {
+            this.globalShockTimer -= deltaTime;
+
+            // 프레임당 데미지
+            const damageThisFrame = this.globalShockDPS * deltaTime;
+            const monsters = this.monsterManager.getAliveMonsters();
+
+            let totalDamage = 0;
+            monsters.forEach(m => {
+                const dealt = m.takeDamage(damageThisFrame);
+                totalDamage += dealt;
+            });
+
+            this.damageDealt += totalDamage;
+
+
+            if (this.globalShockTimer <= 0) {
+                this.globalShockTimer = 0;
+            }
+        }
     }
 
     updateDPS(deltaTime) {
@@ -255,10 +343,6 @@ class Game {
         updateGameUI();
     }
 
-    addGold(amount) {
-        this.gold += amount;
-        this.totalGoldEarned += amount;
-    }
 
     spendGold(amount) {
         if (this.gold >= amount) {
@@ -275,8 +359,21 @@ class Game {
         this.missionBossCooldown = CONFIG.ECONOMY.MISSION_BOSS_COOLDOWN;
     }
 
+    addGold(amount) {
+        this.gold += amount;
+        this.totalGoldEarned += amount;
+        this.updateUI(); // 골드 UI 즉시 갱신
+    }
+
+
     spawnSplitMonsters(x, y, round) {
         this.monsterManager.spawnSplitMonsters(x, y, round);
+    }
+
+    spawnDummyMonsters() {
+        if (this.monsterManager) {
+            this.monsterManager.spawnDummyMonsters(20);
+        }
     }
 
     monsterReachedEnd() {
@@ -301,6 +398,7 @@ window.economy = null;
 window.upgradeManager = null;
 window.battlePass = null;
 window.achievementManager = null;
+window.towerUpgradeManager = null;
 window.DEBUG_MODE = false;
 
 // 초기화
@@ -318,11 +416,14 @@ window.addEventListener('load', () => {
     window.achievementManager = new AchievementManager();
     window.achievementManager.load();
 
+    window.towerUpgradeManager = new TowerUpgradeManager();
+
     // 게임 인스턴스 생성
     window.game = new Game();
 
     // UI 초기화
     initUI();
+    initTowerUpgradeUI();
 
     // 로비 화면 표시
     showScreen('lobby-screen');

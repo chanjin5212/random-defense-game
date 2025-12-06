@@ -869,3 +869,156 @@ body {
     font-size: 0.8rem;
     color: var(--text-secondary);
 }
+
+/* 타워 강화 시스템 스타일 */
+.btn-upgrade {
+    background: linear-gradient(135deg, #F59E0B, #D97706);
+    color: white;
+    padding: 15px 30px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.btn-upgrade:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+}
+
+.tower-upgrade-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.tower-upgrade-list .upgrade-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 15px;
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 10px;
+    border-left: 4px solid;
+    transition: all 0.3s;
+}
+
+.tower-upgrade-list .upgrade-item:hover {
+    background: rgba(15, 23, 42, 0.7);
+    transform: translateX(3px);
+}
+
+.upgrade-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.upgrade-name {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.upgrade-level {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.upgrade-stats {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.upgrade-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 5px;
+}
+
+.upgrade-cost {
+    font-size: 0.9rem;
+    color: var(--accent-gold);
+    font-weight: 600;
+}
+
+.upgrade-max {
+    font-size: 0.9rem;
+    color: var(--success);
+    font-weight: 600;
+}
+
+.btn-upgrade-action {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, #3B82F6, #2563EB);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-upgrade-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.4);
+}
+
+.btn-upgrade-action.disabled,
+.btn-upgrade-action:disabled {
+    background: var(--bg-tertiary);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* 관리자 타워 소환 스타일 */
+.admin-spawn {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.admin-select {
+    padding: 10px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.admin-select:hover {
+    border-color: var(--accent-primary);
+}
+
+.admin-select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.btn-admin-spawn {
+    background: linear-gradient(135deg, #F97316, #EA580C);
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-admin-spawn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4);
+}
+
+.btn-admin-spawn:active {
+    transform: translateY(0);
+}

@@ -42,6 +42,10 @@
 
             <button class="btn btn-primary btn-large" id="start-game-btn">게임 시작</button>
 
+            <!-- 관리자 모드 버튼 -->
+            <button class="btn btn-danger" id="admin-start-btn" style="margin-top: 10px; opacity: 0.7;">🔧 관리자 게임
+                시작</button>
+
             <div class="lobby-buttons">
                 <button class="btn btn-secondary" id="upgrades-btn">스탯 강화</button>
                 <button class="btn btn-secondary" id="achievements-btn">업적</button>
@@ -110,6 +114,9 @@
                             <span>미션 보스 소환</span>
                             <span class="cooldown" id="boss-cooldown">준비</span>
                         </button>
+                        <button class="btn-upgrade" id="tower-upgrade-btn">
+                            <span>타워 강화</span>
+                        </button>
                     </div>
                 </div>
 
@@ -118,6 +125,33 @@
                     <button class="btn-back" id="back-to-main-btn">
                         <span>← 뒤로가기</span>
                     </button>
+
+                    <!-- 관리자 타워 소환 (관리자 모드 전용) -->
+                    <div class="panel-section" id="admin-panel" style="display: none;">
+                        <h3>🔧 관리자 소환</h3>
+                        <div class="admin-spawn">
+                            <select id="admin-rarity-select" class="admin-select">
+                                <option value="COMMON">일반</option>
+                                <option value="UNCOMMON">희귀</option>
+                                <option value="RARE">레어</option>
+                                <option value="EPIC">에픽</option>
+                                <option value="UNIQUE">유니크</option>
+                                <option value="LEGENDARY">레전드</option>
+                                <option value="MYTHIC">미스틱</option>
+                                <option value="DIVINE">신화</option>
+                                <option value="TRANSCENDENT">초월</option>
+                            </select>
+                            <select id="admin-tower-select" class="admin-select">
+                                <option value="STANDARD">일반 타워</option>
+                                <option value="SPLASH">스플래시 타워</option>
+                                <option value="SNIPER">저격 타워</option>
+                            </select>
+                            <button class="btn-admin-spawn" id="admin-spawn-btn">
+                                <span>소환</span>
+                            </button>
+                        </div>
+                    </div>
+
 
                     <div class="panel-section">
                         <h3>타워 뽑기</h3>
@@ -135,6 +169,20 @@
                         <h3>선택된 칸: <span id="selected-cell-info">없음</span></h3>
                         <div class="tower-list" id="cell-tower-list">
                             <p style="text-align: center; opacity: 0.6; color: #F1F5F9;">타워 없음</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 타워 강화 뷰 -->
+                <div id="upgrade-view" class="panel-view">
+                    <button class="btn-back" id="back-from-upgrade-btn">
+                        <span>← 뒤로가기</span>
+                    </button>
+
+                    <div class="panel-section">
+                        <h3>타워 강화</h3>
+                        <div class="tower-upgrade-list" id="tower-upgrade-list">
+                            <!-- 동적으로 생성 -->
                         </div>
                     </div>
                 </div>
@@ -229,22 +277,33 @@
     <!-- 알림 토스트 -->
     <div id="toast-container"></div>
 
-    <!-- JavaScript 파일들 -->
-    <script src="js/config.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/monster.js"></script>
-    <script src="js/tower.js"></script>
-    <script src="js/gacha.js"></script>
-    <script src="js/economy.js"></script>
-    <script src="js/upgrades.js"></script>
-    <script src="js/battlepass.js"></script>
-    <script src="js/achievements.js"></script>
-    <script src="js/renderer.js"></script>
-    <script src="js/tower-ui.js"></script>
-    <script src="js/ui.js"></script>
-    <script src="js/game.js"></script>
-    <script src="js/panel-manager.js"></script>
-    <script src="js/tower-click.js"></script>
+    <!-- 전역 에러 핸들러 (디버깅용) -->
+    <script>
+        window.onerror = function (msg, url, line, col, error) {
+            // 토스트나 알림으로 에러 표시
+            const errorMsg = `오류 발생: ${msg}\n위치: ${url}:${line}`;
+            console.error(errorMsg);
+            // alert(errorMsg); // 너무 자주 뜨면 방해되므로 주석 처리하거나 필요시 활성화
+        };
+    </script>
+
+    <!-- JavaScript 파일들 (캐시 방지용 버전 태그 추가) -->
+    <script src="js/config.js?v=debug1"></script>
+    <script src="js/utils.js?v=debug1"></script>
+    <script src="js/monster.js?v=debug1"></script>
+    <script src="js/tower.js?v=debug1"></script>
+    <script src="js/gacha.js?v=debug1"></script>
+    <script src="js/economy.js?v=debug1"></script>
+    <script src="js/upgrades.js?v=debug1"></script>
+    <script src="js/battlepass.js?v=debug1"></script>
+    <script src="js/achievements.js?v=debug1"></script>
+    <script src="js/renderer.js?v=debug1"></script>
+    <script src="js/tower-ui.js?v=debug1"></script>
+    <script src="js/tower-upgrade.js?v=debug1"></script>
+    <script src="js/ui.js?v=debug1"></script>
+    <script src="js/game.js?v=debug1"></script>
+    <script src="js/panel-manager.js?v=debug1"></script>
+    <script src="js/tower-click.js?v=debug1"></script>
 </body>
 
 </html>

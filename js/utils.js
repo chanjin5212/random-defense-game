@@ -87,23 +87,34 @@ function calculateGoldDrop(round) {
 
 // 보스 HP 계산
 function calculateBossHP(round) {
-    const bossIndex = CONFIG.BOSS.ROUNDS.indexOf(round);
-    return Math.floor(CONFIG.BOSS.BASE_HP * Math.pow(CONFIG.BOSS.HP_SCALING, bossIndex));
+    // 보스 등장 횟수 (1번째, 2번째...)
+    const bossCount = Math.max(1, Math.floor(round / CONFIG.BOSS.INTERVAL));
+    return Math.floor(CONFIG.BOSS.BASE_HP * Math.pow(CONFIG.BOSS.HP_SCALING, bossCount - 1));
 }
 
 // 보스 라운드 확인
 function isBossRound(round) {
-    return CONFIG.BOSS.ROUNDS.includes(round);
+    return round > 0 && round % CONFIG.BOSS.INTERVAL === 0;
 }
 
 // 보스 능력 가져오기
 function getBossAbilities(round) {
-    return CONFIG.BOSS.ABILITIES[round] || [];
+    // 라운드가 진행될수록 능력 추가
+    const bossCount = Math.floor(round / CONFIG.BOSS.INTERVAL);
+    const abilities = [];
+
+    if (bossCount >= 1) abilities.push('regen');
+    if (bossCount >= 2) abilities.push('shield');
+    if (bossCount >= 3) abilities.push('split');
+
+    return abilities;
 }
 
 // 보스 보상 가져오기
 function getBossReward(round) {
-    return CONFIG.BOSS.REWARDS[round] || 0;
+    const baseReward = CONFIG.BOSS.REWARDS.DEFAULT || 1000;
+    const bossCount = Math.max(1, Math.floor(round / CONFIG.BOSS.INTERVAL));
+    return baseReward * bossCount; // 보스 잡을 때마다 보상 증가
 }
 
 // 업그레이드 비용 계산
@@ -187,34 +198,87 @@ class Particle {
 
 // 투사체 클래스
 class Projectile {
-    constructor(x, y, targetX, targetY, damage, color = '#3B82F6') {
+    constructor(x, y, targetX, targetY, damage, color = '#3B82F6', type = 'normal') {
         this.x = x;
         this.y = y;
         this.targetX = targetX;
         this.targetY = targetY;
         this.damage = damage;
         this.color = color;
-        this.speed = 10;
-        this.size = 5;
+        this.type = type; // 'normal', 'meteor', 'armageddon', 'laser'
+        this.onHit = null; // 타격 시 콜백
+
+        // 메테오/아마겟돈 속도 및 크기 조절
+        if (type === 'meteor') {
+            this.speed = 8;
+            this.size = 20;
+        } else if (type === 'armageddon') {
+            this.speed = 4; // 웅장하게 천천히
+            this.size = 80; // 매우 거대함
+        } else {
+            this.speed = 10;
+            this.size = 5;
+        }
 
         const ang = angle(x, y, targetX, targetY);
         this.vx = Math.cos(ang) * this.speed;
         this.vy = Math.sin(ang) * this.speed;
+
+        // 메테오/아마겟돈 트레일 효과용
+        this.trail = [];
     }
 
     update() {
         this.x += this.vx;
         this.y += this.vy;
+
+        if (this.type === 'meteor' || this.type === 'armageddon') {
+            this.trail.push({ x: this.x, y: this.y, life: 1.0 });
+            if (this.trail.length > 15) this.trail.shift();
+            // 트레일 수명 감소
+            this.trail.forEach(t => t.life -= 0.05);
+        }
     }
 
     draw(ctx) {
         ctx.save();
-        ctx.fillStyle = this.color;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = this.color;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
+
+        if (this.type === 'meteor' || this.type === 'armageddon') {
+            const isArmageddon = this.type === 'armageddon';
+
+            // 트레일
+            this.trail.forEach(t => {
+                ctx.beginPath();
+                ctx.arc(t.x, t.y, this.size * t.life * (isArmageddon ? 0.9 : 0.6), 0, Math.PI * 2);
+                ctx.fillStyle = isArmageddon
+                    ? `rgba(255, 50, 50, ${t.life * 0.7})`
+                    : `rgba(255, 100, 0, ${t.life * 0.6})`;
+                ctx.fill();
+            });
+
+            // 본체
+            ctx.shadowBlur = isArmageddon ? 50 : 30;
+            ctx.shadowColor = isArmageddon ? '#FF0000' : '#FF4500';
+            ctx.fillStyle = isArmageddon ? '#FFFFFF' : '#FFFF00'; // 아마겟돈 핵은 흰색
+
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 외곽
+            ctx.strokeStyle = isArmageddon ? '#8B0000' : '#FF0000';
+            ctx.lineWidth = isArmageddon ? 5 : 3;
+            ctx.stroke();
+        } else {
+            // 일반 투사체
+            ctx.fillStyle = this.color;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
         ctx.restore();
     }
 

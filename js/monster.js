@@ -48,10 +48,36 @@ class Monster {
         // 시각 효과
         this.hitFlash = 0;
         this.size = isBoss ? 30 : 20;
+
+        // 더미 모드 (관리자용)
+        this.isDummy = false;
+        this.centerX = 0;
+        this.centerY = 0;
+        this.angle = 0;
+        this.radius = 30;
+    }
+
+    setDummyMode(progress) {
+        this.isDummy = true;
+        this.maxHP = 10000000; // 매우 높은 체력
+        this.hp = this.maxHP;
+        this.defense = 0;
+        this.speed = 40; // 적당한 고정 속도
+
+        // 경로 진행도 설정
+        this.progress = progress;
+
+        // 초기 위치 설정
+        const pos = getPositionOnPath(this.progress);
+        this.x = pos.x;
+        this.y = pos.y;
     }
 
     update(deltaTime) {
         if (!this.alive) return;
+
+        // 더미 모드여도 일반 이동 로직을 따름
+        // 단, 상태 이상(스턴 등)은 적용받을 수 있음
 
         // 스턴 체크
         if (this.statusEffects.stun.active) {
@@ -163,6 +189,12 @@ class Monster {
         this.hitFlash = 1.0;
 
         if (this.hp <= 0) {
+            if (this.isDummy) {
+                // 더미는 죽지 않고 즉시 회복
+                this.hp = this.maxHP;
+                this.hitFlash = 1.0;
+                return actualDamage;
+            }
             this.die();
         }
 
@@ -359,6 +391,21 @@ class MonsterManager {
             monster.y = y;
             this.monsters.push(monster);
         }
+    }
+
+    spawnDummyMonsters(count) {
+        this.monsters = []; // 기존 몬스터 제거
+
+        // 경로상 고르게 분배 배치
+        for (let i = 0; i < count; i++) {
+            const monster = new Monster(1, false, false);
+            // 0 ~ 1 사이를 균등하게 분할
+            const progress = i / count;
+            monster.setDummyMode(progress);
+            this.monsters.push(monster);
+        }
+
+        console.log(`${this.monsters.length} Dummy Monsters Spawned on Path`);
     }
 
     update(deltaTime) {
