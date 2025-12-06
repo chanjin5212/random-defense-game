@@ -1,0 +1,39 @@
+<!-- 우측 컨트롤 패널 (30%) -->
+<div class="control-panel">
+    <!-- 기본 뷰 (메인 메뉴) -->
+    <div id="main-view" class="panel-view active">
+        <div class="panel-section">
+            <h3>메인 메뉴</h3>
+            <button class="btn-boss" id="mission-boss-btn">
+                <span>미션 보스 소환</span>
+                <span class="cooldown" id="boss-cooldown">준비</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 칸 선택 뷰 (타워 관리) -->
+    <div id="cell-view" class="panel-view">
+        <button class="btn-back" id="back-to-main-btn">
+            <span>← 뒤로가기</span>
+        </button>
+
+        <div class="panel-section">
+            <h3>타워 뽑기</h3>
+            <button class="btn-gacha" id="single-pull-btn">
+                <span>1회 뽑기</span>
+                <span class="cost">10G</span>
+            </button>
+            <button class="btn-gacha" id="ten-pull-btn">
+                <span>10회 뽑기</span>
+                <span class="cost">90G</span>
+            </button>
+        </div>
+
+        <div class="panel-section">
+            <h3>선택된 칸: <span id="selected-cell-info">없음</span></h3>
+            <div class="tower-list" id="cell-tower-list">
+                <p style="text-align: center; opacity: 0.6; color: #F1F5F9;">타워 없음</p>
+            </div>
+        </div>
+    </div>
+</div>

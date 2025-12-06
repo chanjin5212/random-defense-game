@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>★ 랜덤 디펜스 ★</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="layout.css">
+</head>
+
+<body>
+    <!-- 로비 화면 -->
+    <div id="lobby-screen" class="screen active">
+        <div class="lobby-container">
+            <h1 class="game-title">★ 랜덤 디펜스 ★</h1>
+
+            <div class="player-info">
+                <div class="info-item">
+                    <span class="label">레벨</span>
+                    <span class="value" id="player-level">1</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">골드</span>
+                    <span class="value gold" id="account-gold">0</span>
+                </div>
+                <div class="info-item">
+                    <span class="label">강화석</span>
+                    <span class="value" id="upgrade-stones">0</span>
+                </div>
+            </div>
+
+            <div class="battlepass-preview">
+                <div class="battlepass-header">
+                    <span>배틀패스</span>
+                    <span id="battlepass-progress">0/30</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="battlepass-fill" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-large" id="start-game-btn">게임 시작</button>
+
+            <div class="lobby-buttons">
+                <button class="btn btn-secondary" id="upgrades-btn">스탯 강화</button>
+                <button class="btn btn-secondary" id="achievements-btn">업적</button>
+                <button class="btn btn-secondary" id="battlepass-btn">배틀패스</button>
+            </div>
+
+            <div class="best-record">
+                <span>최고 기록: </span>
+                <span id="best-round">0</span>
+                <span> 라운드</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 게임 화면 (새 레이아웃) -->
+    <div id="game-screen" class="screen">
+        <div class="game-container">
+            <!-- 왼쪽 게임 영역 (60%) -->
+            <div class="game-area">
+                <!-- 상단 HUD -->
+                <div class="hud-top">
+                    <div class="hud-left">
+                        <div class="round-display">
+                            <span class="label">라운드</span>
+                            <span class="value" id="current-round">1</span>
+                            <span class="max">/100</span>
+                        </div>
+                    </div>
+                    <div class="hud-center">
+                        <div class="timer-display">
+                            <span class="label">남은 시간</span>
+                            <span class="value" id="round-timer">30</span>
+                            <span>초</span>
+                        </div>
+                    </div>
+                    <div class="hud-right">
+                        <div class="gold-display">
+                            <span class="label">골드</span>
+                            <span class="value gold" id="game-gold">50</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 게임 캔버스 -->
+                <canvas id="game-canvas" width="1200" height="700"></canvas>
+
+                <!-- 하단 정보 -->
+                <div class="hud-bottom">
+                    <div class="stats-display">
+                        <span>몬스터: <span id="monster-count">0</span>/<span>300</span></span>
+                        <span>|</span>
+                        <span>처치: <span id="kill-count">0</span></span>
+                        <span>|</span>
+                        <span>DPS: <span id="dps-display">0</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 우측 컨트롤 패널 (30%) -->
+            <div class="control-panel">
+                <!-- 기본 뷰 (메인 메뉴) -->
+                <div id="main-view" class="panel-view active">
+                    <div class="panel-section">
+                        <h3>메인 메뉴</h3>
+                        <button class="btn-boss" id="mission-boss-btn">
+                            <span>미션 보스 소환</span>
+                            <span class="cooldown" id="boss-cooldown">준비</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 칸 선택 뷰 (타워 관리) -->
+                <div id="cell-view" class="panel-view">
+                    <button class="btn-back" id="back-to-main-btn">
+                        <span>← 뒤로가기</span>
+                    </button>
+
+                    <div class="panel-section">
+                        <h3>타워 뽑기</h3>
+                        <button class="btn-gacha" id="single-pull-btn">
+                            <span>1회 뽑기</span>
+                            <span class="cost">10G</span>
+                        </button>
+                        <button class="btn-gacha" id="ten-pull-btn">
+                            <span>10회 뽑기</span>
+                            <span class="cost">90G</span>
+                        </button>
+                    </div>
+
+                    <div class="panel-section">
+                        <h3>선택된 칸: <span id="selected-cell-info">없음</span></h3>
+                        <div class="tower-list" id="cell-tower-list">
+                            <p style="text-align: center; opacity: 0.6; color: #F1F5F9;">타워 없음</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 게임 오버 화면 -->
+    <div id="gameover-screen" class="screen">
+        <div class="gameover-container">
+            <h1 class="gameover-title">게임 종료</h1>
+
+            <div class="results">
+                <div class="result-item">
+                    <span class="label">도달 라운드</span>
+                    <span class="value" id="final-round">0</span>
+                </div>
+                <div class="result-item">
+                    <span class="label">총 처치</span>
+                    <span class="value" id="final-kills">0</span>
+                </div>
+                <div class="result-item">
+                    <span class="label">획득 패스 XP</span>
+                    <span class="value" id="final-xp">+0</span>
+                </div>
+                <div class="result-item">
+                    <span class="label">획득 강화석</span>
+                    <span class="value" id="final-stones">+0</span>
+                </div>
+            </div>
+
+            <div class="achievements-earned" id="achievements-earned">
+                <!-- 달성한 업적 표시 -->
+            </div>
+
+            <div class="gameover-buttons">
+                <button class="btn btn-primary" id="restart-btn">다시하기</button>
+                <button class="btn btn-secondary" id="lobby-btn">로비로</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 모달들은 그대로 유지 -->
+    <div id="upgrades-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>스탯 강화</h2>
+                <button class="close-btn" data-modal="upgrades-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="upgrade-list" id="upgrade-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="achievements-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>업적</h2>
+                <button class="close-btn" data-modal="achievements-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="achievement-list" id="achievement-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="battlepass-modal" class="modal">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2>배틀패스</h2>
+                <button class="close-btn" data-modal="battlepass-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="battlepass-tiers" id="battlepass-tiers"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="gacha-result-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>뽑기 결과</h2>
+                <button class="close-btn" data-modal="gacha-result-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="gacha-results" id="gacha-results"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 알림 토스트 -->
+    <div id="toast-container"></div>
+
+    <!-- JavaScript 파일들 -->
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/monster.js"></script>
+    <script src="js/tower.js"></script>
+    <script src="js/gacha.js"></script>
+    <script src="js/economy.js"></script>
+    <script src="js/upgrades.js"></script>
+    <script src="js/battlepass.js"></script>
+    <script src="js/achievements.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/tower-ui.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/panel-manager.js"></script>
+    <script src="js/tower-click.js"></script>
+</body>
+
+</html>
