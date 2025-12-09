@@ -160,7 +160,6 @@ class Game {
     }
 
     startManualMove(sourceX, sourceY, towerKey, rarity, count) {
-        console.log("머임?");
         this.moveState = {
             active: true,
             sourceX,
@@ -171,18 +170,14 @@ class Game {
         };
         showToast('이동할 칸을 선택하세요', 'info');
 
-        console.log("머임?2");
 
         // 하단 메뉴 숨기기 (시야 확보)
         const bottomPanel = document.getElementById('bottom-panel');
         const mobilePanel = document.getElementById('control-panel-mobile');
 
-        console.log("머임?3");
 
         if (bottomPanel) bottomPanel.style.display = 'none';
-        console.log("머임?4");
         if (mobilePanel) mobilePanel.classList.remove('open');
-        console.log("머임?5");
     }
 
     start(isAdmin = false) {
@@ -499,7 +494,6 @@ window.upgradeManager = null;
 window.battlePass = null;
 window.achievementManager = null;
 window.towerUpgradeManager = null;
-window.DEBUG_MODE = false;
 
 // 초기화
 window.addEventListener('load', () => {
@@ -528,33 +522,5 @@ window.addEventListener('load', () => {
     // 로비 화면 표시
     showScreen('lobby-screen');
     updateLobbyUI();
-
-    console.log('★ 랜덤 디펜스 게임 로드 완료! ★');
-    console.log('디버그 모드: window.DEBUG_MODE = true');
 });
 
-// 키보드 단축키
-window.addEventListener('keydown', (e) => {
-    // D키 - 디버그 모드 토글
-    if (e.key === 'd' || e.key === 'D') {
-        window.DEBUG_MODE = !window.DEBUG_MODE;
-        console.log('디버그 모드:', window.DEBUG_MODE);
-    }
-
-    // R키 - 라운드 스킵 (디버그)
-    if (e.key === 'r' || e.key === 'R') {
-        if (window.DEBUG_MODE && window.game && window.game.state === 'playing') {
-            window.game.nextRound();
-            console.log('라운드 스킵:', window.game.currentRound);
-        }
-    }
-
-    // G키 - 골드 추가 (디버그)
-    if (e.key === 'g' || e.key === 'G') {
-        if (window.DEBUG_MODE && window.game) {
-            window.game.addGold(1000);
-            window.game.updateUI();
-            console.log('골드 +1000');
-        }
-    }
-});

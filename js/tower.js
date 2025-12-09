@@ -1083,7 +1083,7 @@ class TowerManager {
 
     // 모든 타워에 대해 다시 목적지를 계산하고 이동 명령
     redistributeTowers() {
-        console.log('redistributeTowers called');
+
         const allTowers = this.getAllTowers();
 
         allTowers.forEach(tower => {

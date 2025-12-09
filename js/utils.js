@@ -287,12 +287,7 @@ class Projectile {
     }
 }
 
-// 디버그 로그
-function debugLog(...args) {
-    if (window.DEBUG_MODE) {
-        console.log('[DEBUG]', ...args);
-    }
-}
+
 
 // 성능 측정
 class PerformanceMonitor {
