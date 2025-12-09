@@ -199,7 +199,8 @@ class Tower {
         });
 
         if (this.attackSpeed > 0) {
-            this.attackCooldown = this.attackSpeed;
+            // 공격 속도 버프 적용 (Commander's Aura)
+            this.attackCooldown = this.getBuffedAttackInterval();
         }
 
         this.attackAnimation = 1.0;
@@ -420,6 +421,13 @@ class Tower {
         let currentTarget = epicenter;
         let chainCount = 0;
 
+        // Absolute Zero (Splash Divine)
+        let freezeDuration = 0;
+        if (this.skill && this.skill.name.includes('Absolute Zero')) {
+            freezeDuration = 0.6 / this.attackSpeed;
+            epicenter.applyFreeze(freezeDuration);
+        }
+
         // 연쇄 번개 효과를 위해 타겟 수집
         const chainTargets = [epicenter];
 
@@ -443,6 +451,11 @@ class Tower {
             // 다음 타겟에게 데미지 (연쇄마다 15%씩 감소)
             const chainDamage = damage * Math.pow(0.85, chainCount + 1);
             nearestMonster.takeDamage(chainDamage);
+
+            // 빙결 적용
+            if (freezeDuration > 0) {
+                nearestMonster.applyFreeze(freezeDuration);
+            }
 
             // 골드 획득 처리
             if (!nearestMonster.alive) {
@@ -717,6 +730,29 @@ class Tower {
             slotIndex: this.slotIndex
         };
     }
+
+    getBuffedAttackInterval() {
+        let interval = this.attackSpeed;
+
+        // Commander's Aura (Standard Divine) 체크
+        if (window.game && window.game.towerManager) {
+            const towersInCell = window.game.towerManager.grid[this.gridY][this.gridX];
+            if (towersInCell) {
+                // 같은 칸에 'Commander's Aura' 스킬을 가진 타워가 있는지 확인
+                const hasCommander = towersInCell.some(t =>
+                    t.skill && t.skill.name.includes("Commander's Aura")
+                );
+
+                if (hasCommander) {
+                    // 스킬 데이터에서 배율 가져오기 (없으면 기본 3.0)
+                    const buffValue = CONFIG.TOWER_SKILLS.STANDARD.DIVINE.speedMult || 3.0;
+                    interval /= buffValue;
+                }
+            }
+        }
+
+        return interval;
+    }
 }
 
 // 타워 매니저
@@ -763,6 +799,70 @@ class TowerManager {
             return this.cellFilters[y][x];
         }
         return null;
+    }
+
+    moveTowers(sourceX, sourceY, targetX, targetY, towerKey, rarity, count) {
+        if (sourceX === targetX && sourceY === targetY) return 0;
+
+        const sourceCell = this.grid[sourceY][sourceX];
+        const targetCell = this.grid[targetY][targetX];
+
+        // 이동할 타워 후보 찾기
+        const candidates = sourceCell.filter(t =>
+            t.towerKey === towerKey && t.rarity === rarity
+        );
+
+        if (candidates.length === 0) return 0;
+
+        // 실제 이동할 수량 결정 (요청 수량 vs 보유 수량)
+        const moveCount = Math.min(count, candidates.length);
+
+        // 타겟 공간 확인
+        const availableSpace = CONFIG.GAME.TOWERS_PER_SLOT - targetCell.length;
+        const actualMoveCount = Math.min(moveCount, availableSpace);
+
+        if (actualMoveCount <= 0) return 0;
+
+        // 이동 실행
+        for (let i = 0; i < actualMoveCount; i++) {
+            const tower = candidates[i];
+
+            // 소스에서 제거
+            const index = sourceCell.indexOf(tower);
+            if (index > -1) {
+                sourceCell.splice(index, 1);
+            }
+
+            // 타겟에 추가
+            targetCell.push(tower);
+            tower.gridX = targetX;
+            tower.gridY = targetY;
+            tower.slotIndex = targetCell.length - 1; // 슬롯 인덱스 업데이트
+
+            // 위치 업데이트
+            // getCellCenter 로직 직접 구현
+            const grid = CONFIG.GRID_AREA;
+            const cellCenterX = grid.x + (targetX * grid.cellWidth) + (grid.cellWidth / 2);
+            const cellCenterY = grid.y + (targetY * grid.cellHeight) + (grid.cellHeight / 2);
+
+            // 약간의 랜덤성 부여 (setPosition 로직과 유사하게)
+            const angle = (Math.PI * 2 / CONFIG.GAME.TOWERS_PER_SLOT) * tower.slotIndex;
+            const radius = 20 + (Math.random() * 20);
+
+            tower.x = cellCenterX + Math.cos(angle) * radius;
+            tower.y = cellCenterY + Math.sin(angle) * radius;
+            tower.targetX = tower.x;
+            tower.targetY = tower.y;
+            tower.isMoving = false;
+        }
+
+        // 소스 셀에 남은 타워들 재정렬
+        sourceCell.forEach((t, i) => {
+            t.slotIndex = i;
+            t.setPosition(true); // 즉시 위치 재조정
+        });
+
+        return actualMoveCount;
     }
 
     findTargetCell(towerType, towerRarity, currentTower = null) {

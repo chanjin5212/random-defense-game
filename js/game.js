@@ -59,14 +59,52 @@ class Game {
 
         // 캔버스 클릭 이벤트 (그리드 선택)
         this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
+
+        // 수동 이동 상태
+        this.moveState = {
+            active: false,
+            sourceX: -1,
+            sourceY: -1,
+            towerKey: null,
+            rarity: null,
+            count: 0
+        };
     }
 
     handleCanvasClick(event) {
         if (this.state !== 'playing') return;
 
         const rect = this.canvas.getBoundingClientRect();
-        const x = event.clientX - rect.left;
-        const y = event.clientY - rect.top;
+
+        // object-fit: contain으로 인한 실제 렌더링 영역 계산 (tower-click.js 로직 통합)
+        const canvasRatio = this.canvas.width / this.canvas.height;
+        const rectRatio = rect.width / rect.height;
+
+        let renderWidth = rect.width;
+        let renderHeight = rect.height;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        if (rectRatio > canvasRatio) {
+            // 화면이 더 넓음 (좌우 여백 발생)
+            renderWidth = rect.height * canvasRatio;
+            offsetX = (rect.width - renderWidth) / 2;
+        } else {
+            // 화면이 더 높음 (상하 여백 발생)
+            renderHeight = rect.width / canvasRatio;
+            offsetY = (rect.height - renderHeight) / 2;
+        }
+
+        // 클릭 좌표를 캔버스 내부 좌표로 변환
+        const clientX = event.clientX - rect.left - offsetX;
+        const clientY = event.clientY - rect.top - offsetY;
+
+        // 캔버스 스케일 적용
+        const scaleX = this.canvas.width / renderWidth;
+        const scaleY = this.canvas.height / renderHeight;
+
+        const x = clientX * scaleX;
+        const y = clientY * scaleY;
 
         // 그리드 영역 내 클릭인지 확인
         const grid = CONFIG.GRID_AREA;
@@ -77,12 +115,74 @@ class Game {
             const gridX = Math.floor((x - grid.x) / grid.cellWidth);
             const gridY = Math.floor((y - grid.y) / grid.cellHeight);
 
-            // 셀 선택
+            // 수동 이동 모드일 경우
+            if (this.moveState.active) {
+                const moved = this.towerManager.moveTowers(
+                    this.moveState.sourceX, this.moveState.sourceY,
+                    gridX, gridY,
+                    this.moveState.towerKey, this.moveState.rarity,
+                    this.moveState.count
+                );
+
+                if (moved > 0) {
+                    showToast(`${moved}개의 타워 이동 완료`, 'success');
+                    // 이동 후 상태 초기화
+                    this.moveState.active = false;
+
+                    // UI 업데이트 (선택된 셀이 있다면)
+                    if (window.ui) {
+                        window.ui.updateTowerList();
+                        // 하단 메뉴 다시 보이기 (선택사항)
+                        const bottomPanel = document.getElementById('bottom-panel');
+                        if (bottomPanel) bottomPanel.style.display = 'flex';
+                    }
+                } else {
+                    if (this.moveState.sourceX === gridX && this.moveState.sourceY === gridY) {
+                        showToast('이동 취소', 'info');
+                    } else {
+                        showToast('이동 실패 (공간 부족)', 'error');
+                    }
+                    this.moveState.active = false;
+                    if (window.ui) {
+                        const bottomPanel = document.getElementById('bottom-panel');
+                        if (bottomPanel) bottomPanel.style.display = 'flex';
+                    }
+                }
+                return;
+            }
+
+            // 일반 셀 선택
             if (this.towerManager.selectCell(gridX, gridY)) {
                 const count = this.towerManager.getCellTowerCount(gridX, gridY);
                 showToast(`칸 선택됨 (${count}/${CONFIG.GAME.TOWERS_PER_SLOT})`, 'success');
             }
         }
+    }
+
+    startManualMove(sourceX, sourceY, towerKey, rarity, count) {
+        console.log("머임?");
+        this.moveState = {
+            active: true,
+            sourceX,
+            sourceY,
+            towerKey,
+            rarity,
+            count
+        };
+        showToast('이동할 칸을 선택하세요', 'info');
+
+        console.log("머임?2");
+
+        // 하단 메뉴 숨기기 (시야 확보)
+        const bottomPanel = document.getElementById('bottom-panel');
+        const mobilePanel = document.getElementById('control-panel-mobile');
+
+        console.log("머임?3");
+
+        if (bottomPanel) bottomPanel.style.display = 'none';
+        console.log("머임?4");
+        if (mobilePanel) mobilePanel.classList.remove('open');
+        console.log("머임?5");
     }
 
     start(isAdmin = false) {

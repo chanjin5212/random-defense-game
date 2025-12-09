@@ -194,6 +194,70 @@ class Renderer {
         }
     }
 
+    drawAuraEffects(game) {
+        if (!game || !game.towerManager) return;
+
+        const grid = CONFIG.GRID_AREA;
+        const cellWidth = grid.cellWidth;
+        const cellHeight = grid.cellHeight;
+        const time = Date.now() / 1000; // 초 단위 시간
+
+        for (let y = 0; y < CONFIG.GAME.GRID_ROWS; y++) {
+            for (let x = 0; x < CONFIG.GAME.GRID_COLS; x++) {
+                const towers = game.towerManager.grid[y][x];
+                if (!towers || towers.length === 0) continue;
+
+                // Commander's Aura 체크
+                const hasAura = towers.some(t => t.skill && t.skill.name.includes("Commander's Aura"));
+
+                if (hasAura) {
+                    const cellX = grid.x + (x * cellWidth);
+                    const cellY = grid.y + (y * cellHeight);
+                    const centerX = cellX + cellWidth / 2;
+                    const centerY = cellY + cellHeight / 2;
+
+                    this.ctx.save();
+                    this.ctx.translate(centerX, centerY);
+
+                    // 1. 회전하는 마법진 (금색)
+                    this.ctx.rotate(time * 0.5); // 천천히 회전
+
+                    // 외곽 링
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, cellWidth * 0.4, 0, Math.PI * 2);
+                    this.ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)'; // Gold
+                    this.ctx.lineWidth = 2;
+                    this.ctx.setLineDash([10, 5]);
+                    this.ctx.stroke();
+
+                    // 내부 링 (반대 방향 회전)
+                    this.ctx.rotate(time * -1.0); // 반대로 회전
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, cellWidth * 0.3, 0, Math.PI * 2);
+                    this.ctx.strokeStyle = 'rgba(255, 223, 0, 0.3)';
+                    this.ctx.lineWidth = 1;
+                    this.ctx.setLineDash([]);
+                    this.ctx.stroke();
+
+                    // 2. 바닥에서 올라오는 빛 (펄럭임)
+                    this.ctx.restore(); // 회전 초기화
+                    this.ctx.save();
+                    this.ctx.translate(centerX, centerY);
+
+                    const pulse = (Math.sin(time * 3) + 1) / 2; // 0 ~ 1
+                    const alpha = 0.1 + (pulse * 0.1); // 0.1 ~ 0.2
+
+                    this.ctx.fillStyle = `rgba(255, 215, 0, ${alpha})`;
+                    this.ctx.beginPath();
+                    this.ctx.arc(0, 0, cellWidth * 0.45, 0, Math.PI * 2);
+                    this.ctx.fill();
+
+                    this.ctx.restore();
+                }
+            }
+        }
+    }
+
     render(game) {
         this.clear();
 
@@ -208,6 +272,41 @@ class Renderer {
 
         this.drawPath();
         this.drawGrid();
+
+        // 수동 이동 모드일 때 시각적 피드백
+        if (game.moveState && game.moveState.active) {
+            // 1. 전체 화면 어둡게 (Dimming)
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+            // 2. 그리드 강조 (밝게)
+            this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            this.ctx.lineWidth = 2;
+            const grid = CONFIG.GRID_AREA;
+
+            for (let i = 0; i <= CONFIG.GAME.GRID_ROWS; i++) {
+                const y = grid.y + (i * grid.cellHeight);
+                this.ctx.beginPath();
+                this.ctx.moveTo(grid.x, y);
+                this.ctx.lineTo(grid.x + grid.width, y);
+                this.ctx.stroke();
+            }
+            for (let i = 0; i <= CONFIG.GAME.GRID_COLS; i++) {
+                const x = grid.x + (i * grid.cellWidth);
+                this.ctx.beginPath();
+                this.ctx.moveTo(x, grid.y);
+                this.ctx.lineTo(x, grid.y + grid.height);
+                this.ctx.stroke();
+            }
+
+            // 3. 안내 메시지
+            this.ctx.fillStyle = '#FFFFFF';
+            this.ctx.font = 'bold 24px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.fillText('이동할 칸을 선택하세요', this.canvas.width / 2, grid.y - 30);
+        }
+
+        this.drawAuraEffects(game); // 오라 이펙트 추가
 
         // 타워 렌더링
         if (game.towerManager) {

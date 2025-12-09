@@ -182,12 +182,11 @@ const CONFIG = {
                 description: '공격 시 15% 확률로 적을 1.5초간 빙결'
             },
             DIVINE: {
-                name: 'Meteor (메테오)',
-                type: 'count',
-                count: 4, // 4회 공격마다
-                damageMult: 5.0, // 500% 데미지
-                radius: 200, // 넓은 범위
-                description: '4회 공격마다 강력한 메테오 소환'
+                name: 'Absolute Zero (절대 영도)',
+                type: 'hit',
+                chance: 1.0, // 100%
+                duration: 0.3, // 기본 0.3초 (공속에 따라 변동)
+                description: '공격 시 적을 얼려 잠시 동안 멈추게 함 (공속 비례)'
             },
             TRANSCENDENT: {
                 name: 'Armageddon (아마겟돈)',
@@ -230,12 +229,11 @@ const CONFIG = {
                 description: '한 번에 3발의 투사체 발사'
             },
             DIVINE: {
-                name: 'Overdrive (오버드라이브)',
-                type: 'cooldown',
-                cooldown: 10.0, // 10초마다
-                duration: 5.0, // 5초 지속
-                speedMult: 2.0, // 공속 2배 (딜레이 절반)
-                description: '10초마다 5초간 공격속도 2배'
+                name: "Commander's Aura (지휘관의 오라)",
+                type: 'aura',
+                range: 0, // 같은 칸
+                speedMult: 1.3, // 공격 속도 30% 증가 (1.3배)
+                description: '같은 칸에 있는 모든 타워의 공격 속도 30% 증가 (중첩 불가)'
             },
             TRANSCENDENT: {
                 name: 'Doppelganger (도플갱어)',

@@ -29,6 +29,7 @@ class Monster {
         this.statusEffects = {
             slow: { active: false, duration: 0, percent: 0 },
             stun: { active: false, duration: 0 },
+            freeze: { active: false, duration: 0 }, // 빙결 추가
             fireDot: { active: false, duration: 0, damage: 0 },
             poisonDot: { active: false, duration: 0, percent: 0 }
         };
@@ -89,6 +90,15 @@ class Monster {
                 this.statusEffects.stun.active = false;
             }
             return; // 스턴 중에는 이동 안 함
+        }
+
+        // 빙결 체크 (Absolute Zero)
+        if (this.statusEffects.freeze.active) {
+            this.statusEffects.freeze.duration -= deltaTime;
+            if (this.statusEffects.freeze.duration <= 0) {
+                this.statusEffects.freeze.active = false;
+            }
+            return; // 빙결 중에는 이동 안 함 (완전 정지)
         }
 
         // 이동 속도 계산
@@ -256,6 +266,26 @@ class Monster {
         this.statusEffects.stun.duration = Math.max(this.statusEffects.stun.duration, duration);
     }
 
+    applyFreeze(duration) {
+        this.statusEffects.freeze.active = true;
+        this.statusEffects.freeze.duration = Math.max(this.statusEffects.freeze.duration, duration);
+
+        // 얼음 모양 생성 (처음 얼 때만)
+        if (!this.iceVertices) {
+            this.iceVertices = [];
+            const numPoints = 8;
+            for (let i = 0; i < numPoints; i++) {
+                const angle = (Math.PI * 2 * i) / numPoints;
+                // 불규칙한 반지름 (뾰족뾰족하게) - 크기 축소 (1.3 ~ 1.7배)
+                const radius = this.size * (1.3 + (Math.random() * 0.4));
+                this.iceVertices.push({
+                    x: Math.cos(angle) * radius,
+                    y: Math.sin(angle) * radius
+                });
+            }
+        }
+    }
+
     applyFireDot(damage, duration) {
         this.statusEffects.fireDot.active = true;
         this.statusEffects.fireDot.damage = damage;
@@ -319,6 +349,43 @@ class Monster {
             ctx.fillStyle = '#FFFF00';
             ctx.font = 'bold 20px Arial';
             ctx.fillText('★', this.x - 8, this.y - this.size - 10);
+        }
+
+        // 빙결 이펙트 (불규칙한 얼음 결정)
+        if (this.statusEffects.freeze.active && this.iceVertices) {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+
+            // 1. 얼음 본체 (날카로운 다각형)
+            ctx.beginPath();
+            this.iceVertices.forEach((v, i) => {
+                if (i === 0) ctx.moveTo(v.x, v.y);
+                else ctx.lineTo(v.x, v.y);
+            });
+            ctx.closePath();
+
+            // 그라데이션 채우기 (입체감)
+            const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size * 2);
+            grad.addColorStop(0, 'rgba(200, 240, 255, 0.4)');
+            grad.addColorStop(1, 'rgba(100, 200, 255, 0.7)');
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // 2. 얼음 테두리 (날카롭게)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.lineWidth = 2;
+            ctx.lineJoin = 'miter'; // 뾰족한 모서리
+            ctx.stroke();
+
+            // 3. 내부 크랙 (얼음 갈라진 느낌)
+            ctx.beginPath();
+            ctx.moveTo(this.iceVertices[0].x * 0.5, this.iceVertices[0].y * 0.5);
+            ctx.lineTo(this.iceVertices[4].x * 0.5, this.iceVertices[4].y * 0.5);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            ctx.restore();
         }
 
         if (this.statusEffects.fireDot.active) {

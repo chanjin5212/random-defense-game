@@ -107,7 +107,9 @@ function updateCellTowerList() {
             summary[key] = {
                 count: 0,
                 color: tower.rarityData.color,
-                name: key
+                name: key,
+                towerKey: tower.towerKey,
+                rarity: tower.rarity
             };
         }
         summary[key].count++;
@@ -116,8 +118,10 @@ function updateCellTowerList() {
     html += '<div class="tower-summary" style="display: flex; flex-direction: column; gap: 5px;">';
 
     Object.values(summary).sort((a, b) => b.count - a.count).forEach(item => {
+        // 클릭 시 이동 모드 진입
         html += `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; border-left: 3px solid ${item.color};">
+            <div onclick="initiateManualMove('${item.towerKey}', '${item.rarity}', ${item.count})" 
+                 style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; border-left: 3px solid ${item.color}; cursor: pointer; margin-bottom: 5px;">
                 <span style="color: ${item.color}; font-weight: bold; font-size: 0.9em;">${item.name}</span>
                 <span style="font-weight: bold; color: white;">x${item.count}</span>
             </div>
@@ -154,7 +158,32 @@ function sellTowerAtIndex(x, y, index) {
     }
 }
 
+function initiateManualMove(towerKey, rarity, maxCount) {
+    if (!window.game || !window.game.towerManager.selectedCell) return;
+
+    const countStr = prompt(`이동할 수량을 입력하세요 (최대 ${maxCount}개)`, maxCount);
+    if (countStr === null) return; // 취소
+
+    const count = parseInt(countStr);
+    if (isNaN(count) || count <= 0) {
+        showToast('유효한 수량을 입력해주세요.', 'error');
+        return;
+    }
+
+    const moveCount = Math.min(count, maxCount);
+    const selectedCell = window.game.towerManager.selectedCell;
+
+    window.game.startManualMove(
+        selectedCell.x,
+        selectedCell.y,
+        towerKey,
+        rarity,
+        moveCount
+    );
+}
+
 // 전역 스코프로 노출
-window.showTowerDetails = showTowerDetails;
+// window.showTowerDetails = showTowerDetails; // Removed
 window.sellTowerAtIndex = sellTowerAtIndex;
 window.updateCellTowerList = updateCellTowerList;
+window.initiateManualMove = initiateManualMove;
