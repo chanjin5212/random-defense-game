@@ -184,7 +184,7 @@ class Renderer {
                         this.ctx.textAlign = 'right';
                         this.ctx.textBaseline = 'top';
                         this.ctx.fillText(
-                            `${count}/10`,
+                            `${count}/${CONFIG.GAME.TOWERS_PER_SLOT}`,
                             cellX + cellWidth - 5,
                             cellY + 5
                         );

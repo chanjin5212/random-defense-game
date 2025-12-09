@@ -17,14 +17,15 @@ document.addEventListener('click', function (e) {
 });
 
 // 필터 버튼 처리
-document.addEventListener('click', function (e) {
-    const btn = e.target.closest('.btn-filter');
-    if (!btn) return;
+// 필터 변경 처리 (Select Box)
+document.addEventListener('change', function (e) {
+    const select = e.target.closest('.filter-select');
+    if (!select) return;
 
     if (!window.game || !window.game.towerManager.selectedCell) return;
 
-    const category = btn.dataset.category; // 'type' or 'rarity'
-    const value = btn.dataset.value;
+    const category = select.dataset.category; // 'type' or 'rarity'
+    const value = select.value;
     const { x, y } = window.game.towerManager.selectedCell;
 
     window.game.towerManager.setCellFilter(x, y, category, value);
@@ -59,46 +60,35 @@ function updateCellTowerList() {
 
     html += `
         <div class="filter-section" style="margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">
-            <div style="font-size: 12px; color: #ccc; margin-bottom: 8px;">자동 집결 필터 (종류 + 등급)</div>
+            <div style="font-size: 12px; color: #ccc; margin-bottom: 8px;">자동 집결 필터</div>
             
-            <!-- 종류 필터 -->
-            <div style="display: flex; gap: 5px; margin-bottom: 5px;">
-                <button class="btn-filter ${typeFilter === 'STANDARD' ? 'active' : ''}" data-category="type" data-value="STANDARD" 
-                    style="flex: 1; padding: 6px; border: 1px solid #444; border-radius: 4px; background: ${typeFilter === 'STANDARD' ? '#3B82F6' : '#1e293b'}; color: white; font-size: 11px; cursor: pointer;">
-                    일반
-                </button>
-                <button class="btn-filter ${typeFilter === 'SPLASH' ? 'active' : ''}" data-category="type" data-value="SPLASH" 
-                    style="flex: 1; padding: 6px; border: 1px solid #444; border-radius: 4px; background: ${typeFilter === 'SPLASH' ? '#EF4444' : '#1e293b'}; color: white; font-size: 11px; cursor: pointer;">
-                    광역
-                </button>
-                <button class="btn-filter ${typeFilter === 'SNIPER' ? 'active' : ''}" data-category="type" data-value="SNIPER" 
-                    style="flex: 1; padding: 6px; border: 1px solid #444; border-radius: 4px; background: ${typeFilter === 'SNIPER' ? '#10B981' : '#1e293b'}; color: white; font-size: 11px; cursor: pointer;">
-                    저격
-                </button>
-            </div>
+            <div style="display: flex; gap: 10px;">
+                <!-- 종류 필터 -->
+                <div style="flex: 1;">
+                    <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">종류</div>
+                    <select class="filter-select" data-category="type" style="width: 100%; padding: 6px; background: #1e293b; color: white; border: 1px solid #444; border-radius: 4px;">
+                        <option value="" ${!typeFilter ? 'selected' : ''}>전체</option>
+                        <option value="STANDARD" ${typeFilter === 'STANDARD' ? 'selected' : ''}>일반</option>
+                        <option value="SPLASH" ${typeFilter === 'SPLASH' ? 'selected' : ''}>광역</option>
+                        <option value="SNIPER" ${typeFilter === 'SNIPER' ? 'selected' : ''}>저격</option>
+                    </select>
+                </div>
 
-            <!-- 등급 필터 -->
-            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                <button class="btn-filter ${rarityFilter === 'COMMON' ? 'active' : ''}" data-category="rarity" data-value="COMMON" 
-                    style="flex: 1; padding: 4px; border: 1px solid #444; border-radius: 4px; background: ${rarityFilter === 'COMMON' ? '#94A3B8' : '#1e293b'}; color: white; font-size: 10px; cursor: pointer;">
-                    일반
-                </button>
-                <button class="btn-filter ${rarityFilter === 'UNCOMMON' ? 'active' : ''}" data-category="rarity" data-value="UNCOMMON" 
-                    style="flex: 1; padding: 4px; border: 1px solid #444; border-radius: 4px; background: ${rarityFilter === 'UNCOMMON' ? '#10B981' : '#1e293b'}; color: white; font-size: 10px; cursor: pointer;">
-                    고급
-                </button>
-                <button class="btn-filter ${rarityFilter === 'RARE' ? 'active' : ''}" data-category="rarity" data-value="RARE" 
-                    style="flex: 1; padding: 4px; border: 1px solid #444; border-radius: 4px; background: ${rarityFilter === 'RARE' ? '#3B82F6' : '#1e293b'}; color: white; font-size: 10px; cursor: pointer;">
-                    희귀
-                </button>
-                <button class="btn-filter ${rarityFilter === 'EPIC' ? 'active' : ''}" data-category="rarity" data-value="EPIC" 
-                    style="flex: 1; padding: 4px; border: 1px solid #444; border-radius: 4px; background: ${rarityFilter === 'EPIC' ? '#8B5CF6' : '#1e293b'}; color: white; font-size: 10px; cursor: pointer;">
-                    영웅
-                </button>
-                <button class="btn-filter ${rarityFilter === 'LEGENDARY' ? 'active' : ''}" data-category="rarity" data-value="LEGENDARY" 
-                    style="flex: 1; padding: 4px; border: 1px solid #444; border-radius: 4px; background: ${rarityFilter === 'LEGENDARY' ? '#F59E0B' : '#1e293b'}; color: white; font-size: 10px; cursor: pointer;">
-                    전설
-                </button>
+                <!-- 등급 필터 -->
+                <div style="flex: 1;">
+                    <div style="font-size: 10px; color: #aaa; margin-bottom: 4px;">등급</div>
+                    <select class="filter-select" data-category="rarity" style="width: 100%; padding: 6px; background: #1e293b; color: white; border: 1px solid #444; border-radius: 4px;">
+                        <option value="" ${!rarityFilter ? 'selected' : ''}>전체</option>
+                        <option value="COMMON" ${rarityFilter === 'COMMON' ? 'selected' : ''}>일반</option>
+                        <option value="UNCOMMON" ${rarityFilter === 'UNCOMMON' ? 'selected' : ''}>고급</option>
+                        <option value="RARE" ${rarityFilter === 'RARE' ? 'selected' : ''}>희귀</option>
+                        <option value="EPIC" ${rarityFilter === 'EPIC' ? 'selected' : ''}>영웅</option>
+                        <option value="LEGENDARY" ${rarityFilter === 'LEGENDARY' ? 'selected' : ''}>전설</option>
+                        <option value="MYTHIC" ${rarityFilter === 'MYTHIC' ? 'selected' : ''}>미스틱</option>
+                        <option value="DIVINE" ${rarityFilter === 'DIVINE' ? 'selected' : ''}>신화</option>
+                        <option value="TRANSCENDENT" ${rarityFilter === 'TRANSCENDENT' ? 'selected' : ''}>초월</option>
+                    </select>
+                </div>
             </div>
         </div>
     `;

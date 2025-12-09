@@ -266,12 +266,12 @@ const CONFIG = {
 
     // 그리드 영역 (타워 배치 가능 영역 - 모바일 최적화)
     GRID_AREA: {
-        x: 100,
-        y: 100,
-        width: 600, // 4칸 x 150px
-        height: 450, // 3칸 x 150px
-        cellWidth: 150, // 큰 셀 크기 (터치 친화적)
-        cellHeight: 150
+        x: 140, // (800 - 520) / 2
+        y: 105, // (600 - 390) / 2
+        width: 520, // 4칸 x 130px
+        height: 390, // 3칸 x 130px
+        cellWidth: 130, // 크기 조정
+        cellHeight: 130
     }
 };
 
