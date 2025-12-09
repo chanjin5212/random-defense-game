@@ -15,22 +15,11 @@
         <div class="lobby-container">
             <h1 class="game-title">★ 랜덤 디펜스 ★</h1>
 
-            <div class="player-info">
-                <div class="info-item">
-                    <span class="label">레벨</span>
-                    <span class="value" id="player-level">1</span>
-                </div>
-                <div class="info-item">
-                    <span class="label">골드</span>
-                    <span class="value gold" id="account-gold">0</span>
-                </div>
-                <div class="info-item">
-                    <span class="label">강화석</span>
-                    <span class="value" id="upgrade-stones">0</span>
-                </div>
+            <div class="player-info" style="display: none;">
+                <!-- 삭제됨 -->
             </div>
 
-            <div class="battlepass-preview">
+            <!-- <div class="battlepass-preview">
                 <div class="battlepass-header">
                     <span>배틀패스</span>
                     <span id="battlepass-progress">0/30</span>
@@ -38,25 +27,22 @@
                 <div class="progress-bar">
                     <div class="progress-fill" id="battlepass-fill" style="width: 0%"></div>
                 </div>
-            </div>
+            </div> -->
 
             <button class="btn btn-primary btn-large" id="start-game-btn">게임 시작</button>
+            <button class="btn btn-secondary" id="open-ranking-btn" style="margin-top: 10px; width: 100%;">🏆 랭킹
+                보기</button>
 
-            <!-- 관리자 모드 버튼 -->
-            <button class="btn btn-danger" id="admin-start-btn" style="margin-top: 10px; opacity: 0.7;">🔧 관리자 게임
-                시작</button>
+            <!-- 관리자 모드 버튼 삭제됨 -->
+            <!-- <button class="btn btn-danger" id="admin-start-btn" style="margin-top: 10px; opacity: 0.7;">🔧 관리자 게임 시작</button> -->
 
-            <div class="lobby-buttons">
+            <!-- 로비 버튼 삭제됨 -->
+            <!-- <div class="lobby-buttons">
                 <button class="btn btn-secondary" id="upgrades-btn">스탯 강화</button>
                 <button class="btn btn-secondary" id="achievements-btn">업적</button>
                 <button class="btn btn-secondary" id="battlepass-btn">배틀패스</button>
-            </div>
+            </div> -->
 
-            <div class="best-record">
-                <span>최고 기록: </span>
-                <span id="best-round">0</span>
-                <span> 라운드</span>
-            </div>
         </div>
     </div>
 
@@ -69,7 +55,11 @@
                 <div class="hud-mobile">
                     <div class="hud-item">
                         <span class="label">라운드</span>
-                        <span class="value" id="current-round">1</span>
+                        <span class="value">
+                            <span id="current-round">1</span>
+                            <span id="monster-hp-display"
+                                style="font-size: 0.6em; color: #EF4444; margin-left: 5px;">(HP: 200)</span>
+                        </span>
                     </div>
                     <div class="hud-item">
                         <span class="label">시간</span>
@@ -79,6 +69,11 @@
                         <span class="label">골드</span>
                         <span class="value gold" id="game-gold">50</span>
                     </div>
+                    <div class="hud-item pointer" id="speed-btn-container"
+                        style="cursor: pointer; transition: transform 0.1s;">
+                        <span class="label">속도</span>
+                        <span class="value" id="game-speed-display">x1</span>
+                    </div>
                 </div>
 
                 <!-- 게임 캔버스 -->
@@ -86,7 +81,7 @@
 
                 <!-- 하단 통계 -->
                 <div class="stats-mobile">
-                    <span>몬스터: <span id="monster-count">0</span>/300</span>
+                    <span>몬스터: <span id="monster-count">0</span>/200</span>
                     <span>|</span>
                     <span>처치: <span id="kill-count">0</span></span>
                     <span>|</span>
@@ -203,10 +198,10 @@
                     <span class="label">총 처치</span>
                     <span class="value" id="final-kills">0</span>
                 </div>
-                <div class="result-item">
+                <!-- <div class="result-item">
                     <span class="label">획득 패스 XP</span>
                     <span class="value" id="final-xp">+0</span>
-                </div>
+                </div> -->
                 <div class="result-item">
                     <span class="label">획득 강화석</span>
                     <span class="value" id="final-stones">+0</span>
@@ -218,6 +213,8 @@
             </div>
 
             <div class="gameover-buttons">
+                <button class="btn btn-secondary" id="register-ranking-btn"
+                    style="background: #fbbf24; color: black; font-weight: bold;">🏆 랭킹 등록</button>
                 <button class="btn btn-primary" id="restart-btn">다시하기</button>
                 <button class="btn btn-secondary" id="lobby-btn">로비로</button>
             </div>
@@ -273,6 +270,35 @@
         </div>
     </div>
 
+    <!-- 랭킹 모달 (전역) -->
+    <div id="ranking-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px; background: #1a1a1a; border: 1px solid #444;">
+            <div class="modal-header" style="border-bottom: 1px solid #333;">
+                <h2>🏆 명예의 전당</h2>
+                <button class="close-btn" data-modal="ranking-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="ranking-list" style="min-height: 200px; padding: 10px;">
+                    <p style="text-align:center; color:#888;">데이터 불러오는 중...</p>
+                </div>
+
+                <div id="ranking-register-form"
+                    style="display:none; margin-top: 20px; padding-top: 20px; border-top: 1px solid #333;">
+                    <h3 style="margin-bottom: 10px; font-size: 1.1em; color: #fbbf24;">신기록 달성!</h3>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <input type="text" id="ranking-username" placeholder="아이디 (최대 8자)" maxlength="8"
+                            style="width: 100%; padding: 10px; background: #333; border: 1px solid #555; color: white; border-radius: 4px;">
+                        <input type="password" id="ranking-password" placeholder="비밀번호 (4자리)" maxlength="4"
+                            style="width: 100%; padding: 10px; background: #333; border: 1px solid #555; color: white; border-radius: 4px;">
+                        <button onclick="submitMyScore()"
+                            style="width: 100%; padding: 10px; background: #fbbf24; color: black; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">
+                            등록
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- 알림 토스트 -->
     <div id="toast-container"></div>
 
@@ -284,21 +310,29 @@
         };
     </script>
 
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- 환경변수 (gitignore) -->
+    <script src="js/env.js"></script>
+
     <!-- JavaScript 파일들 -->
-    <script src="js/config.js?v=final"></script>
-    <script src="js/utils.js?v=final"></script>
-    <script src="js/monster.js?v=final"></script>
-    <script src="js/tower.js?v=final"></script>
-    <script src="js/gacha.js?v=final"></script>
-    <script src="js/economy.js?v=final"></script>
-    <script src="js/upgrades.js?v=final"></script>
-    <script src="js/battlepass.js?v=final"></script>
-    <script src="js/achievements.js?v=final"></script>
-    <script src="js/renderer.js?v=final"></script>
-    <script src="js/tower-ui.js?v=final"></script>
-    <script src="js/tower-upgrade.js?v=final"></script>
-    <script src="js/ui.js?v=final"></script>
-    <script src="js/game.js?v=final"></script>
+    <!-- JavaScript 파일들 -->
+    <script src="js/config.js?v=final3"></script>
+    <script src="js/utils.js?v=final3"></script>
+    <script src="js/monster.js?v=final3"></script>
+    <script src="js/tower.js?v=final3"></script>
+    <script src="js/gacha.js?v=final3"></script>
+    <script src="js/economy.js?v=final3"></script>
+    <script src="js/upgrades.js?v=final3"></script>
+    <script src="js/battlepass.js?v=final3"></script>
+    <script src="js/achievements.js?v=final3"></script>
+    <script src="js/renderer.js?v=final3"></script>
+    <script src="js/tower-ui.js?v=final3"></script>
+    <script src="js/tower-upgrade.js?v=final3"></script>
+    <script src="js/ui.js?v=final3"></script>
+    <script src="js/ranking.js?v=final3"></script>
+    <script src="js/game.js?v=final3"></script>
     <script src="js/panel-manager.js?v=final"></script>
 
     <script src="js/panel-toggle.js?v=final"></script>

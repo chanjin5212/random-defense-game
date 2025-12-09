@@ -44,28 +44,29 @@ class BattlePassManager {
     }
 
     save() {
-        const data = {
-            currentXP: this.currentXP,
-            currentTier: this.currentTier,
-            claimedRewards: this.claimedRewards
-        };
-        localStorage.setItem('battlepass', JSON.stringify(data));
+        // const data = {
+        //     currentXP: this.currentXP,
+        //     currentTier: this.currentTier,
+        //     claimedRewards: this.claimedRewards
+        // };
+        // localStorage.setItem('battlepass', JSON.stringify(data));
     }
 
     load() {
-        const data = localStorage.getItem('battlepass');
-        if (data) {
-            const parsed = JSON.parse(data);
-            this.currentXP = parsed.currentXP || 0;
-            this.currentTier = parsed.currentTier || 0;
-            this.claimedRewards = parsed.claimedRewards || [];
-        }
+        // const data = localStorage.getItem('battlepass');
+        // if (data) {
+        //     const parsed = JSON.parse(data);
+        //     this.currentXP = parsed.currentXP || 0;
+        //     this.currentTier = parsed.currentTier || 0;
+        //     this.claimedRewards = parsed.claimedRewards || [];
+        // }
     }
 }
 
 // 배틀패스 UI
 function initBattlePassUI() {
     const battlepassBtn = document.getElementById('battlepass-btn');
+    if (!battlepassBtn) return;
 
     battlepassBtn.addEventListener('click', () => {
         updateBattlePassUI();

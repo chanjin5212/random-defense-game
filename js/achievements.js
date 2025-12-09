@@ -66,20 +66,21 @@ class AchievementManager {
     }
 
     save() {
-        localStorage.setItem('achievements', JSON.stringify(this.completed));
+        // localStorage.setItem('achievements', JSON.stringify(this.completed));
     }
 
     load() {
-        const data = localStorage.getItem('achievements');
-        if (data) {
-            this.completed = JSON.parse(data);
-        }
+        // const data = localStorage.getItem('achievements');
+        // if (data) {
+        //     this.completed = JSON.parse(data);
+        // }
     }
 }
 
 // 업적 UI
 function initAchievementUI() {
     const achievementsBtn = document.getElementById('achievements-btn');
+    if (!achievementsBtn) return;
 
     achievementsBtn.addEventListener('click', () => {
         updateAchievementList();

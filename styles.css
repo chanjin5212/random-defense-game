@@ -47,6 +47,7 @@ body {
     overflow: hidden;
     width: 100vw;
     height: 100vh;
+    touch-action: manipulation; /* 더블 탭 확대 방지 */
 }
 
 /* 화면 전환 */

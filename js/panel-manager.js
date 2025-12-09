@@ -1,19 +1,19 @@
 // 패널 뷰 전환 관리
 
-function showMainView() {
+window.showMainView = function () {
     document.getElementById('main-view').classList.add('active');
     document.getElementById('cell-view').classList.remove('active');
     document.getElementById('upgrade-view').classList.remove('active');
 }
 
-function showCellView() {
+window.showCellView = function () {
     document.getElementById('main-view').classList.remove('active');
     document.getElementById('cell-view').classList.add('active');
     document.getElementById('upgrade-view').classList.remove('active');
     updateCellTowerList();
 }
 
-function showUpgradeView() {
+window.showUpgradeView = function () {
     document.getElementById('main-view').classList.remove('active');
     document.getElementById('cell-view').classList.remove('active');
     document.getElementById('upgrade-view').classList.add('active');
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const backBtn = document.getElementById('back-to-main-btn');
     if (backBtn) {
         backBtn.addEventListener('click', () => {
-            showMainView();
+            window.showMainView();
             // 칸 선택 해제
             if (window.game && window.game.towerManager) {
                 window.game.towerManager.selectedCell = null;
@@ -40,7 +40,7 @@ const originalSelectCell = TowerManager.prototype.selectCell;
 TowerManager.prototype.selectCell = function (gridX, gridY) {
     const result = originalSelectCell.call(this, gridX, gridY);
     if (result) {
-        showCellView();
+        window.showCellView();
     }
     return result;
 };

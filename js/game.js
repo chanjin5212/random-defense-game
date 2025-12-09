@@ -6,7 +6,8 @@ class Game {
         this.renderer = new Renderer(this.canvas);
 
         // 게임 상태
-        this.state = 'idle'; // idle, playing, paused, gameover
+        this.state = 'loading'; // loading, playing, paused, gameover
+        this.gameSpeed = 1; // 게임 배속
         this.currentRound = 1;
         this.roundTimer = CONFIG.GAME.ROUND_DURATION;
         this.gold = CONFIG.ECONOMY.STARTING_GOLD;
@@ -154,8 +155,8 @@ class Game {
 
             // 일반 셀 선택
             if (this.towerManager.selectCell(gridX, gridY)) {
-                const count = this.towerManager.getCellTowerCount(gridX, gridY);
-                showToast(`칸 선택됨 (${count}/${CONFIG.GAME.TOWERS_PER_SLOT})`, 'success');
+                // const count = this.towerManager.getCellTowerCount(gridX, gridY);
+                // showToast(`칸 선택됨 (${count}/${CONFIG.GAME.TOWERS_PER_SLOT})`, 'success');
 
                 // 메뉴 패널 열기
                 const mobilePanel = document.getElementById('control-panel-mobile');
@@ -227,6 +228,29 @@ class Game {
         this.projectiles = [];
         this.particles = [];
 
+        // 매니저 상태 초기화 (메모리 리셋)
+        if (window.towerUpgradeManager) window.towerUpgradeManager.reset();
+        if (window.economy) {
+            window.economy.accountGold = 0;
+            window.economy.upgradeStones = 0;
+            // 필요하다면 save() 호출 
+        }
+        if (window.battlePass) {
+            window.battlePass.currentXP = 0;
+            window.battlePass.currentTier = 0;
+            window.battlePass.claimedRewards = [];
+        }
+        if (window.achievementManager) {
+            window.achievementManager.completed = [];
+        }
+        if (window.upgradeManager) {
+            // 업그레이드 매니저 리셋 로직 필요 (현재 reset 메서드 없음. 수동 리셋)
+            window.upgradeManager.levels = {
+                ATK_PERCENT: 0, ASPD_PERCENT: 0, CRIT_RATE: 0,
+                CRIT_DAMAGE: 0, BOSS_DAMAGE: 0, STARTING_GOLD: 0
+            };
+        }
+
         if (this.isAdminMode) {
             this.gold = 999999; // 테스트용 무한 골드
             this.spawnDummyMonsters();
@@ -263,13 +287,34 @@ class Game {
         this.startRound();
     }
 
+
+
+    // ...
+
+    toggleGameSpeed() {
+        if (!this.gameSpeed) this.gameSpeed = 1;
+
+        if (this.gameSpeed === 1) this.gameSpeed = 2;
+        else if (this.gameSpeed === 2) this.gameSpeed = 3;
+        else this.gameSpeed = 1;
+
+        // UI 업데이트
+        const btn = document.getElementById('game-speed-display');
+        if (btn) btn.textContent = `x${this.gameSpeed}`;
+    }
+
+    // ...
+
     gameLoop(timestamp = 0) {
         if (this.state !== 'playing') return;
 
-        const deltaTime = (timestamp - this.lastTime) / 1000;
+        const rawDeltaTime = (timestamp - this.lastTime) / 1000;
         this.lastTime = timestamp;
 
-        if (deltaTime > 0 && deltaTime < 0.1) { // 최대 100ms
+        if (rawDeltaTime > 0 && rawDeltaTime < 0.1) {
+            // 배속 적용: 기본 1배속
+            const speed = this.gameSpeed || 1;
+            const deltaTime = rawDeltaTime * speed;
             this.update(deltaTime);
         }
 
@@ -303,9 +348,10 @@ class Game {
         this.monsterManager.update(deltaTime);
 
         // 몬스터 300마리 이상 시 게임 오버
+        // 몬스터 한도 초과 시 게임 오버
         const monsterCount = this.monsterManager.getAliveMonsters().length;
-        if (monsterCount >= 300) {
-            showToast('몬스터가 300마리를 초과했습니다!', 'error');
+        if (monsterCount >= CONFIG.GAME.MAX_MONSTERS) {
+            showToast(`몬스터가 ${CONFIG.GAME.MAX_MONSTERS}마리를 초과했습니다!`, 'error');
             this.gameOver();
             return;
         }
@@ -463,7 +509,13 @@ class Game {
     }
 
     createHitParticles(x, y, color) {
-        for (let i = 0; i < 5; i++) {
+        // 파티클 최적화: 현재 파티클 수가 200개 이상이면 생성 중단
+        if (this.particles.length > 200) return;
+
+        // 배속 상태거나 파티클이 많으면 생성 개수 감소
+        const count = (this.particles.length > 100 || this.gameSpeed > 1) ? 2 : 5;
+
+        for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;
             const speed = randomInt(1, 3);
             const particle = new Particle(
@@ -526,6 +578,11 @@ class Game {
     gameOver() {
         this.state = 'gameover';
 
+        // 게임 종료 시 즉시 저장소 비우기 (유저 요청)
+        try {
+            localStorage.clear();
+        } catch (e) { console.error('Storage clear failed', e); }
+
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
         }
@@ -546,16 +603,16 @@ window.towerUpgradeManager = null;
 window.addEventListener('load', () => {
     // 매니저들 초기화
     window.economy = new EconomyManager();
-    window.economy.load();
+    // window.economy.load();
 
     window.upgradeManager = new UpgradeManager();
-    window.upgradeManager.load();
+    // window.upgradeManager.load();
 
     window.battlePass = new BattlePassManager();
-    window.battlePass.load();
+    // window.battlePass.load();
 
     window.achievementManager = new AchievementManager();
-    window.achievementManager.load();
+    // window.achievementManager.load();
 
     window.towerUpgradeManager = new TowerUpgradeManager();
 

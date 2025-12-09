@@ -8,6 +8,7 @@ const CONFIG = {
         GRID_ROWS: 3, // 그리드 행 수 (모바일 최적화)
         GRID_COLS: 4, // 그리드 열 수 (모바일 최적화)
         TOWERS_PER_SLOT: 50, // 각 칸당 최대 타워 수 (물량전)
+        MAX_MONSTERS: 200, // 최대 몬스터 수 (초과 시 게임 오버)
         CANVAS_WIDTH: 800, // 모바일 너비
         CANVAS_HEIGHT: 600, // 모바일 높이
         FPS: 60
@@ -71,13 +72,14 @@ const CONFIG = {
     },
 
     // 몬스터 스케일링
+    // 몬스터 스케일링
     MONSTER: {
         BASE_HP: 200,
-        HP_SCALING: 1.12, // HP = 200 × (1.12 ^ (round-1))
+        HP_SCALING: 1.15, // 1.25 -> 1.15 (추가 하향 조정)
         BASE_SPEED: 1.0,
         MAX_SPEED: 2.5,
         BASE_GOLD: 1,
-        GOLD_SCALING: 15 // 1 + (round/15)
+        GOLD_SCALING: 15 // 유지
     },
 
     // 몬스터 타입
@@ -215,21 +217,21 @@ const CONFIG = {
         STANDARD: {
             name: '일반 타워 강화',
             baseCost: 10,
-            costScaling: 1.10,
+            costPerLevel: 5, // 레벨당 5원 증가
             maxLevel: 100,
-            damagePerLevel: 100 // 레벨당 100% 증가
+            damagePerLevel: 100 // 레벨당 100% 증가 (x2, x3, x4...)
         },
         SPLASH: {
             name: '스플래시 타워 강화',
             baseCost: 10,
-            costScaling: 1.10,
+            costPerLevel: 5, // 레벨당 5원 증가
             maxLevel: 100,
             damagePerLevel: 100
         },
         SNIPER: {
             name: '저격 타워 강화',
             baseCost: 10,
-            costScaling: 1.10,
+            costPerLevel: 5, // 레벨당 5원 증가
             maxLevel: 100,
             damagePerLevel: 100
         }
@@ -358,6 +360,13 @@ const CONFIG = {
         height: 390, // 3칸 x 130px
         cellWidth: 130, // 크기 조정
         cellHeight: 130
+    },
+
+    // Supabase 설정 (env.js에서 로드)
+    SUPABASE: {
+        URL: window.ENV ? window.ENV.SUPABASE_URL : '',
+        KEY: window.ENV ? window.ENV.SUPABASE_KEY : '',
+        TABLE: 'rankings'
     }
 };
 

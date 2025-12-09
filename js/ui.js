@@ -3,8 +3,16 @@
 function initUI() {
     document.getElementById('start-game-btn').addEventListener('click', startGame);
     document.getElementById('restart-btn').addEventListener('click', restartGame);
-    document.getElementById('lobby-btn').addEventListener('click', returnToLobby);
+    document.getElementById('lobby-btn').addEventListener('click', () => location.reload());
     document.getElementById('mission-boss-btn').addEventListener('click', spawnMissionBoss);
+
+    // 3배속 버튼
+    const speedBtn = document.getElementById('speed-btn-container');
+    if (speedBtn) {
+        speedBtn.addEventListener('click', () => {
+            if (window.game) window.game.toggleGameSpeed();
+        });
+    }
 
     // 관리자 기능
     const adminStartBtn = document.getElementById('admin-start-btn');
@@ -60,6 +68,27 @@ function updateGameUI() {
     if (roundEl) roundEl.textContent = window.game.currentRound;
     if (timerEl) timerEl.textContent = Math.ceil(window.game.roundTimer);
     if (goldEl) goldEl.textContent = formatNumber(window.game.gold);
+
+    // 몬스터 체력 표시
+    const hpDisplay = document.getElementById('monster-hp-display');
+    if (hpDisplay) {
+        const round = window.game.currentRound;
+        if (typeof isBossRound === 'function' && isBossRound(round)) {
+            // 보스 라운드면 실제 보스 체력 표시 시도
+            const boss = window.game.monsterManager.monsters.find(m => m.isBoss);
+            if (boss) {
+                hpDisplay.textContent = `(Boss: ${formatNumber(Math.ceil(boss.hp))})`;
+            } else {
+                // 보스 스폰 전 or 처치 후
+                const maxHp = calculateBossHP(round);
+                hpDisplay.textContent = `(Boss: ${formatNumber(maxHp)})`;
+            }
+        } else {
+            // 일반 몬스터 체력
+            const maxHp = calculateMonsterHP(round);
+            hpDisplay.textContent = `(HP: ${formatNumber(maxHp)})`;
+        }
+    }
 
     // 통계
     const killCountEl = document.getElementById('kill-count');
@@ -151,10 +180,10 @@ function showGameOver() {
         window.economy.addUpgradeStones(stonesGained);
     }
 
-    const bestRound = parseInt(localStorage.getItem('bestRound') || 0);
+    const bestRound = 0; // parseInt(localStorage.getItem('bestRound') || 0);
     if (window.game.currentRound > bestRound) {
-        localStorage.setItem('bestRound', window.game.currentRound);
-        showToast('새로운 최고 기록!', 'success');
+        // localStorage.setItem('bestRound', window.game.currentRound);
+        // showToast('새로운 최고 기록!', 'success');
     }
 
     showScreen('gameover-screen');

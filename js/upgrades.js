@@ -43,20 +43,22 @@ class UpgradeManager {
     }
 
     save() {
-        localStorage.setItem('upgrades', JSON.stringify(this.levels));
+        // localStorage.setItem('upgrades', JSON.stringify(this.levels));
     }
 
     load() {
-        const data = localStorage.getItem('upgrades');
-        if (data) {
-            this.levels = JSON.parse(data);
-        }
+        // const data = localStorage.getItem('upgrades');
+        // if (data) {
+        //     this.levels = JSON.parse(data);
+        // }
     }
 }
 
 // 업그레이드 UI
 function initUpgradeUI() {
     const upgradesBtn = document.getElementById('upgrades-btn');
+    if (!upgradesBtn) return; // 버튼이 없으면 초기화 중단
+
     const upgradeList = document.getElementById('upgrade-list');
 
     upgradesBtn.addEventListener('click', () => {

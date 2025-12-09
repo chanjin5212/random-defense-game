@@ -11,10 +11,34 @@ class TowerUpgradeManager {
             };
         });
 
-        this.load();
+        // this.load(); // 자동 로드 비활성화
     }
 
-    // 강화 비용 계산
+    // ... (중략)
+
+    // 저장 (비활성화)
+    save() {
+        // localStorage.setItem('towerUpgradesV2', JSON.stringify(this.upgrades));
+    }
+
+    // 로드 (비활성화)
+    load() {
+        // const saved = localStorage.getItem('towerUpgradesV2');
+        // if (saved) {
+        //     try {
+        //         const loaded = JSON.parse(saved);
+        //         Object.keys(loaded).forEach(key => {
+        //             if (this.upgrades[key]) {
+        //                 this.upgrades[key] = loaded[key];
+        //             }
+        //         });
+        //     } catch (e) {
+        //         console.error('타워 강화 데이터 로드 실패:', e);
+        //     }
+        // }
+    }
+
+    // 강화 비용 계산 (선형 증가)
     getUpgradeCost(key) {
         const config = CONFIG.TOWER_UPGRADES[key];
         const currentLevel = this.upgrades[key] ? this.upgrades[key].level : 0;
@@ -23,7 +47,9 @@ class TowerUpgradeManager {
             return null; // 최대 레벨
         }
 
-        return Math.floor(config.baseCost * Math.pow(config.costScaling, currentLevel));
+        // 선형 증가: 기본 비용 + (현재 레벨 * 레벨당 증가 비용)
+        // 예: 기본 10, 증가 2 -> 0렙: 10, 1렙: 12, 2렙: 14...
+        return config.baseCost + (currentLevel * config.costPerLevel);
     }
 
     // 강화 실행
@@ -106,29 +132,14 @@ class TowerUpgradeManager {
         return result;
     }
 
-    // 저장
+    // 저장 (비활성화)
     save() {
-        localStorage.setItem('towerUpgradesV2', JSON.stringify(this.upgrades));
+        // localStorage.setItem('towerUpgradesV2', JSON.stringify(this.upgrades));
     }
 
-    // 로드
+    // 로드 (비활성화)
     load() {
-        // V2로 변경 (키가 달라졌으므로 새로 저장해야 함)
-        const saved = localStorage.getItem('towerUpgradesV2');
-        if (saved) {
-            try {
-                const loaded = JSON.parse(saved);
-
-                // 기존 데이터와 병합
-                Object.keys(loaded).forEach(key => {
-                    if (this.upgrades[key]) {
-                        this.upgrades[key] = loaded[key];
-                    }
-                });
-            } catch (e) {
-                console.error('타워 강화 데이터 로드 실패:', e);
-            }
-        }
+        // 로드 로직 제거
     }
 
     // 초기화 (디버그용)
@@ -142,14 +153,13 @@ class TowerUpgradeManager {
 
 // 강화 UI 초기화
 function initTowerUpgradeUI() {
-    console.log('initTowerUpgradeUI called');
     const upgradeBtn = document.getElementById('tower-upgrade-btn');
 
     if (upgradeBtn) {
-        console.log('tower-upgrade-btn found, adding listener');
         upgradeBtn.addEventListener('click', () => {
-            console.log('tower-upgrade-btn clicked');
-            if (typeof showUpgradeView === 'function') {
+            if (typeof window.showUpgradeView === 'function') {
+                window.showUpgradeView();
+            } else if (typeof showUpgradeView === 'function') {
                 showUpgradeView();
             } else {
                 console.error('showUpgradeView is not defined');
@@ -186,7 +196,7 @@ function updateTowerUpgradeList() {
                         <span class="upgrade-name" style="color: ${upgrade.color};">${upgrade.name}</span>
                     </div>
                     <div class="upgrade-level" id="upgrade-level-${upgrade.key}" style="margin-bottom: 4px;">Lv ${upgrade.level}/${upgrade.maxLevel}</div>
-                    <div class="upgrade-stats" id="upgrade-stats-${upgrade.key}" style="margin-bottom: 8px;">공격력 +${upgrade.damageBonus}%</div>
+                    <div class="upgrade-stats" id="upgrade-stats-${upgrade.key}" style="margin-bottom: 8px;">데미지 x${(1 + upgrade.damageBonus / 100).toFixed(1)}</div>
                 </div>
                 
                 <div class="upgrade-footer" id="upgrade-footer-${upgrade.key}" style="flex-direction: column; gap: 4px; align-items: stretch;">
@@ -208,7 +218,7 @@ function updateTowerUpgradeList() {
         const footerEl = document.getElementById(`upgrade-footer-${upgrade.key}`);
 
         if (levelEl) levelEl.textContent = `Lv ${upgrade.level}/${upgrade.maxLevel}`;
-        if (statsEl) statsEl.textContent = `공격력 +${upgrade.damageBonus}%`;
+        if (statsEl) statsEl.textContent = `데미지 x${(1 + upgrade.damageBonus / 100).toFixed(1)}`;
 
         const isMaxLevel = upgrade.level >= upgrade.maxLevel;
         const canAfford = window.game && window.game.gold >= upgrade.cost;
@@ -271,11 +281,21 @@ function performUpgrade(key) {
 
     if (result.success) {
         const config = CONFIG.TOWER_UPGRADES[key];
-        showToast(`${config.name} 완료! Lv ${result.newLevel} (-${formatNumber(result.cost)}G)`, 'success');
+        // showToast(`${config.name} 완료! Lv ${result.newLevel} (-${formatNumber(result.cost)}G)`, 'success');
 
         // UI 업데이트
         window.game.updateUI();
         updateTowerUpgradeList();
+
+        // **기존 타워 스탯 업데이트 추가**
+        if (window.game && window.game.towerManager) {
+            const towers = window.game.towerManager.getAllTowers();
+            towers.forEach(t => {
+                if (t.towerKey === key && typeof t.updateStats === 'function') {
+                    t.updateStats();
+                }
+            });
+        }
     } else {
         showToast(result.reason, 'error');
     }

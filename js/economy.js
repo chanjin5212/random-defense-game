@@ -36,21 +36,21 @@ class EconomyManager {
     }
 
     save() {
-        const data = {
-            accountGold: this.accountGold,
-            premiumCash: this.premiumCash,
-            upgradeStones: this.upgradeStones
-        };
-        localStorage.setItem('economy', JSON.stringify(data));
+        // const data = {
+        //     accountGold: this.accountGold,
+        //     premiumCash: this.premiumCash,
+        //     upgradeStones: this.upgradeStones
+        // };
+        // localStorage.setItem('economy', JSON.stringify(data));
     }
 
     load() {
-        const data = localStorage.getItem('economy');
-        if (data) {
-            const parsed = JSON.parse(data);
-            this.accountGold = parsed.accountGold || 0;
-            this.premiumCash = parsed.premiumCash || 0;
-            this.upgradeStones = parsed.upgradeStones || 0;
-        }
+        // const data = localStorage.getItem('economy');
+        // if (data) {
+        //     const parsed = JSON.parse(data);
+        //     this.accountGold = parsed.accountGold || 0;
+        //     this.premiumCash = parsed.premiumCash || 0;
+        //     this.upgradeStones = parsed.upgradeStones || 0;
+        // }
     }
 }

@@ -115,18 +115,64 @@ function updateCellTowerList() {
         summary[key].count++;
     });
 
+    // 등급 순서 (높은 등급이 우선)
+    const rarityOrder = {
+        'TRANSCENDENT': 0,
+        'DIVINE': 1,
+        'MYTHIC': 2,
+        'LEGENDARY': 3,
+        'UNIQUE': 4,
+        'EPIC': 5,
+        'RARE': 6,
+        'UNCOMMON': 7,
+        'COMMON': 8
+    };
+
     html += '<div class="tower-summary" style="display: flex; flex-direction: column; gap: 5px;">';
 
-    Object.values(summary).sort((a, b) => b.count - a.count).forEach(item => {
-        // 클릭 시 이동 모드 진입
-        html += `
-            <div onclick="initiateManualMove('${item.towerKey}', '${item.rarity}', ${item.count})" 
-                 style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; border-left: 3px solid ${item.color}; cursor: pointer; margin-bottom: 5px;">
-                <span style="color: ${item.color}; font-weight: bold; font-size: 0.9em;">${item.name}</span>
-                <span style="font-weight: bold; color: white;">x${item.count}</span>
-            </div>
-        `;
-    });
+    Object.values(summary)
+        .sort((a, b) => {
+            // 1. 등급 정렬
+            const orderA = rarityOrder[a.rarity] !== undefined ? rarityOrder[a.rarity] : 99;
+            const orderB = rarityOrder[b.rarity] !== undefined ? rarityOrder[b.rarity] : 99;
+            if (orderA !== orderB) return orderA - orderB;
+            // 2. 이름 정렬
+            return a.name.localeCompare(b.name);
+        })
+        .forEach(item => {
+            // 공격력 정보 계산
+            const towerRef = towers.find(t => t.towerKey === item.towerKey && t.rarity === item.rarity);
+            let dmgInfo = '';
+            if (towerRef) {
+                // 기본 데미지 (CONFIG 참조)
+                const baseDmg = CONFIG.TOWERS[item.towerKey].baseDamage * towerRef.rarityData.multiplier;
+                // 현재 최종 데미지
+                const currentDmg = towerRef.damage;
+                // 계정 스탯 등 추가 보정 적용된 최종 예상 데미지 (UI 표시용)
+                const finalDmg = towerRef.applyAccountStats(currentDmg, { isBoss: false });
+
+                const bonus = Math.max(0, finalDmg - baseDmg);
+
+                dmgInfo = `
+                    <div style="font-size: 0.8em; color: #aaa; margin-top: 2px;">
+                        ATK: <span style="color: #fff;">${formatNumber(finalDmg)}</span>
+                        ${bonus > 0 ? `<span style="color: #10B981;">(+${formatNumber(bonus)})</span>` : ''}
+                    </div>
+                `;
+            }
+
+            // 클릭 시 이동 모드 진입
+            html += `
+                <div onclick="initiateManualMove('${item.towerKey}', '${item.rarity}', ${item.count})" 
+                     style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; border-left: 3px solid ${item.color}; cursor: pointer; margin-bottom: 5px;">
+                    <div>
+                        <span style="color: ${item.color}; font-weight: bold; font-size: 0.9em; display: block;">${item.name}</span>
+                        ${dmgInfo}
+                    </div>
+                    <span style="font-weight: bold; color: white;">x${item.count}</span>
+                </div>
+            `;
+        });
 
     html += '</div>';
 
@@ -151,7 +197,7 @@ function sellTowerAtIndex(x, y, index) {
     // 바로 판매
     const success = window.game.towerManager.sellTower(tower);
     if (success) {
-        showToast(`타워 판매 완료! +${sellPrice}G`, 'success');
+        // showToast(`타워 판매 완료! +${sellPrice}G`, 'success');
         updateCellTowerList(); // 목록 갱신
     } else {
         showToast('판매 실패', 'error');

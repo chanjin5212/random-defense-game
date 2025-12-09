@@ -25,7 +25,8 @@ class Monster {
             this.maxHP = calculateBossHP(round);
             this.speed = calculateMonsterSpeed(round) * CONFIG.BOSS.SPEED_MULTIPLIER * 100; // 100배 빠르게
             this.defense = CONFIG.BOSS.DEFENSE;
-            this.goldReward = getBossReward(round);
+            // 미션 보스는 고정 100골드, 일반 보스는 라운드 비례
+            this.goldReward = isMissionBoss ? 100 : getBossReward(round);
             this.abilities = getBossAbilities(round);
             this.size = isMissionBoss ? 50 : 40;
         } else {
@@ -655,8 +656,16 @@ class MonsterManager {
             this.monstersToSpawn = 1;
             this.spawnBoss(round);
         } else {
-            // 일반 라운드 - 라운드 수에 따라 몬스터 수 증가
-            this.monstersToSpawn = Math.min(10 + Math.floor(round / 5), 50);
+            // 일반 라운드 - 기본 30마리 시작
+            this.monstersToSpawn = 30 + Math.floor(round / 2); // 라운드 진행에 따라 소폭 증가
+
+            // 라운드 종료 5초 전까지 모든 몬스터 스폰
+            const spawnDuration = CONFIG.GAME.ROUND_DURATION - 5;
+            if (spawnDuration > 0 && this.monstersToSpawn > 0) {
+                this.spawnInterval = spawnDuration / this.monstersToSpawn;
+            } else {
+                this.spawnInterval = 0.5; // fallback
+            }
         }
     }
 

@@ -70,13 +70,13 @@ class GachaSystem {
                 const message = `${result.rarityData.name} ${result.towerData.name} (${Math.floor(result.towerData.baseDamage * result.rarityData.multiplier)} DMG)`;
 
                 // 등급에 따라 다른 타입의 토스트
-                if (result.rarityData.multiplier >= 5.0) {
-                    showToast(`✨ ${message}`, 'success');
-                } else if (result.rarityData.multiplier >= 2.0) {
-                    showToast(`⭐ ${message}`, 'success');
-                } else {
-                    showToast(message, 'info');
-                }
+                // if (result.rarityData.multiplier >= 5.0) {
+                //     showToast(`✨ ${message}`, 'success');
+                // } else if (result.rarityData.multiplier >= 2.0) {
+                //     showToast(`⭐ ${message}`, 'success');
+                // } else {
+                //     showToast(message, 'info');
+                // }
             }, index * 200); // 순차적으로 표시
         });
     }
@@ -130,6 +130,17 @@ function initGachaUI() {
             // 결과 표시
             window.game.gacha.showResults(results);
 
+            // 레전드 이상이면 축하 효과 표시
+            const legendaryRarities = ['LEGENDARY', 'MYTHIC', 'DIVINE', 'TRANSCENDENT'];
+            if (legendaryRarities.includes(result.rarity)) {
+                showLegendaryCelebration(
+                    result.towerData.name,
+                    result.rarityData.name,
+                    result.rarity,
+                    result.rarityData.color
+                );
+            }
+
             // 만약 현재 보고 있는 칸에 타워가 추가되었다면 목록 갱신
             if (window.game.towerManager.selectedCell &&
                 window.game.towerManager.selectedCell.x === addResult.x &&
@@ -178,6 +189,20 @@ function initGachaUI() {
                     if (typeof updateCellTowerList === 'function') {
                         updateCellTowerList();
                     }
+                }
+
+                // 레전드 이상이면 축하 효과 표시 (하나씩)
+                const legendaryRarities = ['LEGENDARY', 'MYTHIC', 'DIVINE', 'TRANSCENDENT'];
+                if (legendaryRarities.includes(result.rarity)) {
+                    // 약간의 딜레이를 두고 표시하여 겹침 방지
+                    setTimeout(() => {
+                        showLegendaryCelebration(
+                            result.towerData.name,
+                            result.rarityData.name,
+                            result.rarity,
+                            result.rarityData.color
+                        );
+                    }, addedCount * 500);
                 }
             } else {
                 // 공간 부족 등으로 실패 시 중단? 아니면 계속 시도?
@@ -249,7 +274,7 @@ function initGachaUI() {
         if (window.game && window.game.towerManager) removeTowerFromMap(towerType, rarity);
         window.game.gold += sellPrice;
         window.game.updateUI();
-        showToast(`${rarityData.name} ${CONFIG.TOWERS[towerType].name} 판매 (+${sellPrice}G)`, 'success');
+        // showToast(`${rarityData.name} ${CONFIG.TOWERS[towerType].name} 판매 (+${sellPrice}G)`, 'success');
         updateTowerSellPanel();
         return true;
     }

@@ -1,15 +1,25 @@
 // 유틸리티 함수들
 
-// 한국식 숫자 포맷팅
+// 알파벳 숫자 포맷팅 (1a = 1,000)
 function formatNumber(num) {
-    if (num >= 100000000) {
-        return (num / 100000000).toFixed(1) + '억';
-    } else if (num >= 10000) {
-        return (num / 10000).toFixed(1) + '만';
-    } else if (num >= 1000) {
-        return (num / 1000).toFixed(1) + 'K';
+    if (num === 0) return '0';
+    if (num < 1000) return Math.floor(num).toString();
+
+    const units = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
+    // 1000 = 1a, 1,000,000 = 1b, ... (10^3 단위)
+    const order = Math.floor(Math.log10(num) / 3);
+    const unitName = units[order - 1] || '?';
+
+    // 유효숫자 처리 (ex: 1.2a)
+    const val = num / Math.pow(1000, order);
+
+    // 소수점 제거 (정수부만 표시하거나 깔끔하게)
+    // 10보다 작으면 소수점 1자리, 아니면 정수
+    if (val < 10) {
+        return val.toFixed(1) + unitName;
+    } else {
+        return Math.floor(val) + unitName;
     }
-    return Math.floor(num).toString();
 }
 
 // 거리 계산
@@ -87,9 +97,10 @@ function calculateGoldDrop(round) {
 
 // 보스 HP 계산
 function calculateBossHP(round) {
-    // 보스 등장 횟수 (1번째, 2번째...)
-    const bossCount = Math.max(1, Math.floor(round / CONFIG.BOSS.INTERVAL));
-    return Math.floor(CONFIG.BOSS.BASE_HP * Math.pow(CONFIG.BOSS.HP_SCALING, bossCount - 1));
+    // 20라운드마다 보스가 나오므로, 해당 라운드의 몬스터 체력을 기준으로 뻥튀기
+    // 보스는 몬스터의 100배 체력
+    const monsterHP = calculateMonsterHP(round);
+    return monsterHP * 100;
 }
 
 // 보스 라운드 확인
@@ -242,26 +253,22 @@ function showLegendaryCelebration(towerName, rarityName, rarityKey, rarityColor)
     setTimeout(() => document.body.removeChild(flash), 500);
 }
 
-// 로컬 스토리지 저장
+// 로컬 스토리지 저장 (비활성화)
 function saveGame(data) {
-    try {
-        localStorage.setItem('randomDefenseGame', JSON.stringify(data));
-        return true;
-    } catch (e) {
-        console.error('저장 실패:', e);
-        return false;
-    }
+    // localStorage.setItem('randomDefenseGame', JSON.stringify(data));
+    return true;
 }
 
-// 로컬 스토리지 로드
+// 로컬 스토리지 로드 (비활성화 - 항상 초기화)
 function loadGame() {
-    try {
-        const data = localStorage.getItem('randomDefenseGame');
-        return data ? JSON.parse(data) : null;
-    } catch (e) {
-        console.error('로드 실패:', e);
-        return null;
-    }
+    // try {
+    //     const data = localStorage.getItem('randomDefenseGame');
+    //     return data ? JSON.parse(data) : null;
+    // } catch (e) {
+    //     console.error('로드 실패:', e);
+    //     return null;
+    // }
+    return null;
 }
 
 // 파티클 클래스

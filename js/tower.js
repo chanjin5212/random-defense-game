@@ -59,10 +59,11 @@ class Tower {
         const cellCenterX = grid.x + (this.gridX * cellWidth) + (cellWidth / 2);
         const cellCenterY = grid.y + (this.gridY * cellHeight) + (cellHeight / 2);
 
-        // 랜덤 산개 배치 (자연스럽게)
-        // 시드 기반 랜덤을 사용하면 좋겠지만, 간단하게 슬롯 인덱스 기반으로 약간의 랜덤성 부여
-        const angle = (Math.PI * 2 / CONFIG.GAME.TOWERS_PER_SLOT) * this.slotIndex + (Math.random() * 0.5 - 0.25);
-        const radius = 20 + (Math.random() * 20); // 20~40 범위로 산개
+        // 고정적인 배치 (결정론적) - 난수 제거
+        // 배치 시각적 안정성을 위해 슬롯 인덱스에 따라 고정 위치 사용
+        const angle = (Math.PI * 2 / CONFIG.GAME.TOWERS_PER_SLOT) * this.slotIndex;
+        // 2개의 링으로 배치 (안쪽, 바깥쪽)하여 겹침 최소화
+        const radius = 25 + (this.slotIndex % 2) * 15; // 25, 40 번갈아가며 사용
 
         this.targetX = cellCenterX + Math.cos(angle) * radius;
         this.targetY = cellCenterY + Math.sin(angle) * radius;
@@ -75,6 +76,19 @@ class Tower {
             this.isMoving = true;
             this.moveSpeed = 500; // 픽셀/초
         }
+    }
+
+    updateStats() {
+        // 스탯 재계산 (등급 배수 + 타워 강화 보너스 적용)
+        let damageMultiplier = this.rarityData.multiplier;
+
+        // 타워 강화 보너스 적용 (타워 종류별)
+        if (window.towerUpgradeManager) {
+            const upgradeMultiplier = window.towerUpgradeManager.getDamageMultiplier(this.towerKey);
+            damageMultiplier *= upgradeMultiplier;
+        }
+
+        this.damage = this.towerData.baseDamage * damageMultiplier;
     }
 
     update(deltaTime, monsters) {
@@ -207,29 +221,73 @@ class Tower {
     }
 
     findTargets(monsters) {
-        const aliveMonsters = monsters.filter(m => m.alive);
-        const inRange = aliveMonsters.filter(m => {
-            return distance(this.x, this.y, m.x, m.y) <= this.range;
-        });
-
-        // Multi-Shot (Standard Mythic)
-        if (this.skill && this.skill.name.includes('Multi-Shot')) {
-            // 거리순 정렬 후 상위 N명
-            inRange.sort((a, b) => distance(this.x, this.y, a.x, a.y) - distance(this.x, this.y, b.x, b.y));
-            return inRange.slice(0, this.skill.targetCount);
+        // 1. 기존 타겟 재활용 (단일 타겟이고, 유효하며 범위 내에 있으면)
+        if (this.currentTarget && (!this.skill || !this.skill.name.includes('Multi-Shot'))) {
+            if (this.currentTarget.alive) {
+                const dx = this.x - this.currentTarget.x;
+                const dy = this.y - this.currentTarget.y;
+                const distSq = dx * dx + dy * dy;
+                // 범위 + 약간의 여유(0.1)
+                if (distSq <= (this.range * this.range)) {
+                    return [this.currentTarget];
+                }
+            }
+            this.currentTarget = null; // 타겟 유실
         }
 
-        if (inRange.length === 0) return [];
+        // 2. 새 타겟 탐색 (최적화된 루프)
+        const rangeSq = this.range * this.range;
+        let candidates = [];
+        // Multi-Shot이면 여러 명 필요, 아니면 1명(최우선)만 필요
+        const isMultiShot = this.skill && this.skill.name.includes('Multi-Shot');
+        const isSniper = this.effect === 'sniper';
 
-        if (this.effect === 'sniper') {
-            return [inRange.reduce((max, m) => m.hp > max.hp ? m : max)];
+        let bestTarget = null;
+        let maxHp = -1; // Sniper용
+        let minDistSq = Infinity; // Nearest용
+
+        // 배열 할당 최소화를 위해 for 루프 사용
+        const len = monsters.length;
+        for (let i = 0; i < len; i++) {
+            const m = monsters[i];
+            if (!m.alive) continue;
+
+            const dx = this.x - m.x;
+            const dy = this.y - m.y;
+            const distSq = dx * dx + dy * dy;
+
+            if (distSq <= rangeSq) {
+                if (isMultiShot) {
+                    candidates.push({ monster: m, distSq: distSq });
+                }
+                else if (isSniper) {
+                    // 체력 가장 높은 적
+                    if (m.hp > maxHp) {
+                        maxHp = m.hp;
+                        bestTarget = m;
+                    }
+                }
+                else {
+                    // 가장 가까운 적 (기본값)
+                    if (distSq < minDistSq) {
+                        minDistSq = distSq;
+                        bestTarget = m;
+                    }
+                }
+            }
         }
 
-        return [inRange.reduce((closest, m) => {
-            const d1 = distance(this.x, this.y, closest.x, closest.y);
-            const d2 = distance(this.x, this.y, m.x, m.y);
-            return d2 < d1 ? m : closest;
-        })];
+        if (isMultiShot) {
+            candidates.sort((a, b) => a.distSq - b.distSq);
+            return candidates.slice(0, this.skill.targetCount).map(c => c.monster);
+        }
+
+        if (bestTarget) {
+            this.currentTarget = bestTarget;
+            return [bestTarget];
+        }
+
+        return [];
     }
 
     executeAttack(target) {
@@ -1092,12 +1150,12 @@ class TowerManager {
 
         const tower = new Tower(towerKey, rarity, x, y, slotIndex);
 
-        // 초기 위치 설정 (화면 중앙 하단에서 시작)
-        tower.x = CONFIG.GAME.CANVAS_WIDTH / 2;
-        tower.y = CONFIG.GAME.CANVAS_HEIGHT + 50; // 화면 밖에서 날아오기
+        // 초기 위치 설정 (즉시 배치)
+        // tower.x = CONFIG.GAME.CANVAS_WIDTH / 2;
+        // tower.y = CONFIG.GAME.CANVAS_HEIGHT + 50; 
 
-        // 목표 위치로 이동 시작
-        tower.setPosition(false); // instant = false
+        // 목표 위치로 이동 시작 (즉시)
+        tower.setPosition(true); // instant = true
 
         cell.push(tower);
 
