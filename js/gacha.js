@@ -64,42 +64,20 @@ class GachaSystem {
 
     // 뽑기 결과 표시
     showResults(results) {
-        const modal = document.getElementById('gacha-result-modal');
-        const resultsContainer = document.getElementById('gacha-results');
-
-        // 결과 초기화
-        resultsContainer.innerHTML = '';
-
-        // 결과 카드 생성
+        // 토스트로 결과 표시
         results.forEach((result, index) => {
-            const card = document.createElement('div');
-            card.className = 'gacha-card';
-            card.style.borderColor = result.rarityData.color;
-            card.style.animationDelay = `${index * 0.1}s`;
+            setTimeout(() => {
+                const message = `${result.rarityData.name} ${result.towerData.name} (${Math.floor(result.towerData.baseDamage * result.rarityData.multiplier)} DMG)`;
 
-            card.innerHTML = `
-                <div class="gacha-rarity" style="color: ${result.rarityData.color}">
-                    ${result.rarityData.name}
-                </div>
-                <div class="gacha-tower">
-                    ${result.towerData.name}
-                </div>
-                <div class="gacha-damage">
-                    ${Math.floor(result.towerData.baseDamage * result.rarityData.multiplier)} DMG
-                </div>
-            `;
-
-            resultsContainer.appendChild(card);
-        });
-
-        // 모달 표시
-        modal.classList.add('active');
-
-        // 희귀 등급 알림
-        results.forEach(result => {
-            if (result.rarityData.multiplier >= 2.0) {
-                showToast(`${result.rarityData.name} 등급 획득! ${result.towerData.name}`, 'success');
-            }
+                // 등급에 따라 다른 타입의 토스트
+                if (result.rarityData.multiplier >= 5.0) {
+                    showToast(`✨ ${message}`, 'success');
+                } else if (result.rarityData.multiplier >= 2.0) {
+                    showToast(`⭐ ${message}`, 'success');
+                } else {
+                    showToast(message, 'info');
+                }
+            }, index * 200); // 순차적으로 표시
         });
     }
 
@@ -165,6 +143,10 @@ function initGachaUI() {
         if (addResult.success) {
             // 결과 표시
             window.game.gacha.showResults(results);
+            // 타워 목록 업데이트
+            if (typeof updateCellTowerList === 'function') {
+                updateCellTowerList();
+            }
         } else {
             showToast(addResult.reason, 'error');
             // 골드 환불
@@ -220,6 +202,11 @@ function initGachaUI() {
 
         // 결과 표시
         window.game.gacha.showResults(results);
+
+        // 타워 목록 업데이트
+        if (typeof updateCellTowerList === 'function') {
+            updateCellTowerList();
+        }
 
         if (addedCount < results.length) {
             showToast(`${addedCount}개의 타워만 추가되었습니다 (슬롯 부족)`, 'warning');

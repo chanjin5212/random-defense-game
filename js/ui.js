@@ -116,11 +116,6 @@ function updateGameUI() {
         singleBtn.disabled = !hasSelection || !hasGoldForSingle || cellFull;
         tenBtn.disabled = !hasSelection || !hasGoldForTen || cellFull;
     }
-
-    // 타워 목록 업데이트
-    if (typeof updateCellTowerList === 'function') {
-        updateCellTowerList();
-    }
 }
 
 function showGameOver() {

@@ -1,6 +1,4 @@
 // 타워 UI 함수 (새 레이아웃용)
-// console.log("Tower UI Loaded - vDebug1");
-// alert("시스템 업데이트 완료: 판매 기능 재활성화됨");
 
 // 이벤트 위임 방식으로 판매 버튼 처리 (중복 방지 및 동적 요소 대응)
 document.addEventListener('click', function (e) {
@@ -70,19 +68,6 @@ function updateCellTowerList() {
         return;
     }
 
-    // 이벤트 위임 방식으로 판매 버튼 처리 (인라인 onclick 제거)
-    document.addEventListener('click', function (e) {
-        const btn = e.target.closest('.btn-sell');
-        if (!btn) return;
-
-        const x = parseInt(btn.dataset.x);
-        const y = parseInt(btn.dataset.y);
-        const index = parseInt(btn.dataset.index);
-
-        sellTowerAtIndex(x, y, index);
-    });
-
-
     let html = '';
     towers.forEach((tower, index) => {
         const details = tower.getDetails();
@@ -94,8 +79,8 @@ function updateCellTowerList() {
         }
 
         html += `
-            <div class="tower-item" style="border-left-color: ${tower.rarityData.color}; display: flex; justify-content: space-between; align-items: center; padding: 8px; margin-bottom: 8px; background: rgba(0,0,0,0.2); border-left-width: 4px; border-left-style: solid; border-radius: 4px; pointer-events: none; cursor: default;">
-                <div class="tower-info" style="flex: 1;">
+            <div class="tower-item" style="border-left-color: ${tower.rarityData.color}; display: flex; justify-content: space-between; align-items: center; padding: 8px; margin-bottom: 8px; background: rgba(0,0,0,0.2); border-left-width: 4px; border-left-style: solid; border-radius: 4px;">
+                <div class="tower-info" style="flex: 1; pointer-events: none;">
                     <div class="tower-item-name" style="color: ${tower.rarityData.color}; font-weight: bold;">
                         ${details.name}
                     </div>
@@ -103,8 +88,7 @@ function updateCellTowerList() {
                         ${details.rarity} | Dmg: ${damageDisplay}
                     </div>
                 </div>
-                <!-- z-index를 100으로 높이고 position:relative 추가하여 최상단 노출 보장 -->
-                <button class="btn-sell" data-x="${x}" data-y="${y}" data-index="${index}" style="background: #ef4444; border: none; border-radius: 4px; color: white; padding: 6px 12px; font-size: 0.9em; cursor: pointer; margin-left: 8px; flex-shrink: 0; min-width: 70px; z-index: 100; position: relative; pointer-events: auto;">
+                <button class="btn-sell" data-x="${x}" data-y="${y}" data-index="${index}" style="background: #ef4444; border: none; border-radius: 4px; color: white; padding: 6px 12px; font-size: 0.9em; cursor: pointer; margin-left: 8px; flex-shrink: 0; min-width: 70px;">
                     판매 <span style="font-weight: bold; color: #fbbf24;">${tower.sellPrice}G</span>
                 </button>
             </div>
@@ -116,40 +100,26 @@ function updateCellTowerList() {
 
 function sellTowerAtIndex(x, y, index) {
     if (!window.game) {
-        alert('게임이 실행 중이 아닙니다.');
         return;
     }
-
-    console.log(`판매 시도: (${x}, ${y}) 인덱스 ${index}`);
 
     // 타워가 존재하는지 확인
     const towers = window.game.towerManager.grid[y][x];
     if (!towers || !towers[index]) {
-        alert('타워 정보를 찾을 수 없습니다.');
+        showToast('타워를 찾을 수 없습니다.', 'error');
         return;
     }
 
     const tower = towers[index];
+    const sellPrice = tower.sellPrice;
 
-    if (confirm(`${tower.rarityData.name} 타워를 ${tower.sellPrice}G에 판매하시겠습니까?`)) {
-        try {
-            // 디버깅: 메서드 존재 여부 확인
-            if (typeof window.game.towerManager.sellTower !== 'function') {
-                alert('오류: sellTower 메서드가 없습니다! 새로고침 해보세요.');
-                return;
-            }
-
-            const success = window.game.towerManager.sellTower(tower);
-            if (success) {
-                showToast(`타워 판매 완료! +${tower.sellPrice}G`, 'success');
-            } else {
-                alert('판매 실패: 내부 로직 오류 (TowerManager returned false)');
-            }
-        } catch (e) {
-            alert('판매 중 오류 발생: ' + e.message);
-            console.error(e);
-        }
+    // 바로 판매
+    const success = window.game.towerManager.sellTower(tower);
+    if (success) {
+        showToast(`타워 판매 완료! +${sellPrice}G`, 'success');
         updateCellTowerList(); // 목록 갱신
+    } else {
+        showToast('판매 실패', 'error');
     }
 }
 

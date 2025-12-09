@@ -49,6 +49,9 @@ class Monster {
         this.hitFlash = 0;
         this.size = isBoss ? 30 : 20;
 
+        // 데미지 텍스트
+        this.damageTexts = [];
+
         // 더미 모드 (관리자용)
         this.isDummy = false;
         this.centerX = 0;
@@ -127,6 +130,27 @@ class Monster {
         if (this.hitFlash > 0) {
             this.hitFlash -= deltaTime * 5;
         }
+
+        // 데미지 텍스트 업데이트
+        this.damageTexts.forEach(text => {
+            text.y -= 30 * deltaTime; // 위로 떠오름
+            text.life -= deltaTime;
+            text.alpha = Math.max(0, text.life / text.maxLife);
+        });
+        this.damageTexts = this.damageTexts.filter(text => text.life > 0);
+    }
+
+    createDamageText(damage) {
+        // 데미지 텍스트 객체 생성
+        const text = {
+            damage: Math.round(damage),
+            x: this.x + (Math.random() - 0.5) * 20, // 약간의 랜덤 오프셋
+            y: this.y - this.size - 20,
+            life: 1.0, // 1초 동안 표시
+            maxLife: 1.0,
+            alpha: 1.0
+        };
+        this.damageTexts.push(text);
     }
 
     applyDoTDamage(deltaTime) {
@@ -187,6 +211,9 @@ class Monster {
 
         this.hp -= actualDamage;
         this.hitFlash = 1.0;
+
+        // 데미지 텍스트 생성
+        this.createDamageText(actualDamage);
 
         if (this.hp <= 0) {
             if (this.isDummy) {
@@ -310,6 +337,31 @@ class Monster {
 
         // HP 바
         this.drawHealthBar(ctx);
+
+        // 데미지 텍스트 렌더링
+        this.drawDamageTexts(ctx);
+    }
+
+    drawDamageTexts(ctx) {
+        ctx.save();
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        this.damageTexts.forEach(text => {
+            ctx.globalAlpha = text.alpha;
+
+            // 외곽선 (가독성 향상)
+            ctx.strokeStyle = '#000000';
+            ctx.lineWidth = 3;
+            ctx.strokeText(formatNumber(text.damage), text.x, text.y);
+
+            // 텍스트
+            ctx.fillStyle = '#FFFF00'; // 노란색
+            ctx.fillText(formatNumber(text.damage), text.x, text.y);
+        });
+
+        ctx.restore();
     }
 
     drawHealthBar(ctx) {
@@ -405,7 +457,6 @@ class MonsterManager {
             this.monsters.push(monster);
         }
 
-        console.log(`${this.monsters.length} Dummy Monsters Spawned on Path`);
     }
 
     update(deltaTime) {
