@@ -290,8 +290,8 @@
 
 /* 타워 강화 목록 */
 .tower-upgrade-list {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 8px;
 }
 
@@ -372,4 +372,46 @@
     margin-left: 6px;
     flex-shrink: 0;
     min-width: 60px;
+}
+
+/* 버튼 그리드 시스템 */
+.button-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    width: 100%;
+}
+
+#gacha-button-grid {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.button-grid .btn-gacha,
+.button-grid .btn-boss,
+.button-grid .btn-upgrade,
+.button-grid .btn-back,
+.button-grid .btn-sell {
+    margin-bottom: 0;
+    /* 그리드 갭 사용 */
+    height: 100%;
+    min-height: 50px;
+    /* 터치 영역 확보 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 8px 4px;
+}
+
+.button-grid .cost,
+.button-grid .cooldown {
+    margin-top: 4px;
+    font-size: 10px;
+}
+
+/* 타워 판매 버튼이 그리드 안에 있을 때 */
+#tower-sell-btn {
+    margin-left: 0;
+    min-width: 0;
 }

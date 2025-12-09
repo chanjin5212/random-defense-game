@@ -218,8 +218,8 @@ function initGachaUI() {
     });
 
     // 타워 판매 버튼 추가
-    let gachaButtons = document.querySelector('.panel-section:nth-child(2)');
-    if (gachaButtons && !document.getElementById('tower-sell-btn')) {
+    let gachaButtonGrid = document.getElementById('gacha-button-grid');
+    if (gachaButtonGrid && !document.getElementById('tower-sell-btn')) {
         const sellBtn = document.createElement('button');
         sellBtn.id = 'tower-sell-btn';
         sellBtn.className = 'btn-gacha btn-sell';
@@ -227,7 +227,7 @@ function initGachaUI() {
         sellBtn.addEventListener('click', () => {
             showTowerSellPanel();
         });
-        gachaButtons.appendChild(sellBtn);
+        gachaButtonGrid.appendChild(sellBtn);
     }
 
     // 타워 판매 (FIFO)

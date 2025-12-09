@@ -142,12 +142,21 @@ class TowerUpgradeManager {
 
 // 강화 UI 초기화
 function initTowerUpgradeUI() {
+    console.log('initTowerUpgradeUI called');
     const upgradeBtn = document.getElementById('tower-upgrade-btn');
 
     if (upgradeBtn) {
+        console.log('tower-upgrade-btn found, adding listener');
         upgradeBtn.addEventListener('click', () => {
-            showUpgradeView();
+            console.log('tower-upgrade-btn clicked');
+            if (typeof showUpgradeView === 'function') {
+                showUpgradeView();
+            } else {
+                console.error('showUpgradeView is not defined');
+            }
         });
+    } else {
+        console.error('tower-upgrade-btn not found');
     }
 
     // 뒤로가기 버튼
@@ -166,49 +175,91 @@ function updateTowerUpgradeList() {
 
     const upgrades = window.towerUpgradeManager.getAllUpgrades();
 
-    let html = '';
+    // 리스트가 비어있으면 초기 생성
+    if (listDiv.children.length === 0) {
+        let html = '';
+        upgrades.forEach(upgrade => {
+            html += `
+            <div class="upgrade-item" id="upgrade-item-${upgrade.key}" style="border-left-color: ${upgrade.color}; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div class="upgrade-header">
+                        <span class="upgrade-name" style="color: ${upgrade.color};">${upgrade.name}</span>
+                    </div>
+                    <div class="upgrade-level" id="upgrade-level-${upgrade.key}" style="margin-bottom: 4px;">Lv ${upgrade.level}/${upgrade.maxLevel}</div>
+                    <div class="upgrade-stats" id="upgrade-stats-${upgrade.key}" style="margin-bottom: 8px;">공격력 +${upgrade.damageBonus}%</div>
+                </div>
+                
+                <div class="upgrade-footer" id="upgrade-footer-${upgrade.key}" style="flex-direction: column; gap: 4px; align-items: stretch;">
+                    <!-- 동적 콘텐츠 -->
+                </div>
+            </div>
+        `;
+        });
+        listDiv.innerHTML = html;
+    }
 
+    // 값 업데이트
     upgrades.forEach(upgrade => {
+        const itemEl = document.getElementById(`upgrade-item-${upgrade.key}`);
+        if (!itemEl) return;
+
+        const levelEl = document.getElementById(`upgrade-level-${upgrade.key}`);
+        const statsEl = document.getElementById(`upgrade-stats-${upgrade.key}`);
+        const footerEl = document.getElementById(`upgrade-footer-${upgrade.key}`);
+
+        if (levelEl) levelEl.textContent = `Lv ${upgrade.level}/${upgrade.maxLevel}`;
+        if (statsEl) statsEl.textContent = `공격력 +${upgrade.damageBonus}%`;
+
         const isMaxLevel = upgrade.level >= upgrade.maxLevel;
         const canAfford = window.game && window.game.gold >= upgrade.cost;
         const disabled = isMaxLevel || !canAfford;
 
-        html += `
-            <div class="upgrade-item" style="border-left-color: ${upgrade.color};">
-                <div class="upgrade-header">
-                    <span class="upgrade-name" style="color: ${upgrade.color};">
-                        ${upgrade.name}
-                    </span>
-                    <span class="upgrade-level">
-                        Lv ${upgrade.level}/${upgrade.maxLevel}
-                    </span>
-                </div>
-                <div class="upgrade-stats">
-                    <span>공격력: +${upgrade.damageBonus}%</span>
-                </div>
-                <div class="upgrade-footer">
-                    ${isMaxLevel ?
-                '<span class="upgrade-max">최대 레벨</span>' :
-                `<span class="upgrade-cost">비용: ${formatNumber(upgrade.cost)}G</span>
-                         <button class="btn-upgrade-action ${disabled ? 'disabled' : ''}" 
-                                 data-key="${upgrade.key}"
-                                 ${disabled ? 'disabled' : ''}>
-                             강화하기
-                         </button>`
+        // 푸터 내용 업데이트 (상태가 변경되었을 때만 다시 그리는 것이 좋지만, 간단하게 처리)
+        // 버튼의 이벤트 리스너 유지를 위해 버튼이 이미 있고 상태만 바뀌는 경우를 처리해야 함
+
+        let existingBtn = footerEl.querySelector('.btn-upgrade-action');
+        let existingMax = footerEl.querySelector('.upgrade-max');
+
+        if (isMaxLevel) {
+            if (!existingMax) {
+                footerEl.innerHTML = '<div class="upgrade-max" style="text-align: center;">MAX</div>';
             }
-                </div>
-            </div>
-        `;
-    });
+        } else {
+            // 최대 레벨이 아님
+            if (existingMax) {
+                // MAX였다가 아니게 된 경우 (치트 등?) 혹은 초기화
+                footerEl.innerHTML = '';
+                existingBtn = null;
+            }
 
-    listDiv.innerHTML = html;
+            if (!existingBtn) {
+                footerEl.innerHTML = `
+                    <div class="upgrade-cost" style="text-align: center; margin-bottom: 4px;">${formatNumber(upgrade.cost)}G</div>
+                    <button class="btn-upgrade-action" 
+                            data-key="${upgrade.key}"
+                            style="width: 100%;">
+                        강화
+                    </button>
+                `;
+                // 새 버튼에 리스너 추가
+                const newBtn = footerEl.querySelector('.btn-upgrade-action');
+                newBtn.addEventListener('click', () => {
+                    performUpgrade(upgrade.key);
+                });
+            } else {
+                // 버튼이 이미 있으면 텍스트와 상태만 업데이트
+                const costEl = footerEl.querySelector('.upgrade-cost');
+                if (costEl) costEl.textContent = `${formatNumber(upgrade.cost)}G`;
 
-    // 강화 버튼 이벤트 리스너
-    listDiv.querySelectorAll('.btn-upgrade-action').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const key = btn.getAttribute('data-key');
-            performUpgrade(key);
-        });
+                if (disabled) {
+                    existingBtn.classList.add('disabled');
+                    existingBtn.disabled = true;
+                } else {
+                    existingBtn.classList.remove('disabled');
+                    existingBtn.disabled = false;
+                }
+            }
+        }
     });
 }
 

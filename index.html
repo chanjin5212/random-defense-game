@@ -106,25 +106,29 @@
                 <div id="main-view" class="panel-view active">
                     <div class="panel-section">
                         <h3>메인 메뉴</h3>
-                        <button class="btn-boss" id="mission-boss-btn">
-                            <span>미션 보스 소환</span>
-                            <span class="cooldown" id="boss-cooldown">준비</span>
-                        </button>
-                        <button class="btn-upgrade" id="tower-upgrade-btn">
-                            <span>타워 강화</span>
-                        </button>
+                        <div class="button-grid">
+                            <button class="btn-boss" id="mission-boss-btn">
+                                <span>미션 보스 소환</span>
+                                <span class="cooldown" id="boss-cooldown">준비</span>
+                            </button>
+                            <button class="btn-upgrade" id="tower-upgrade-btn">
+                                <span>타워 강화</span>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="panel-section">
                         <h3>타워 뽑기</h3>
-                        <button class="btn-gacha" id="single-pull-btn">
-                            <span>1회 뽑기</span>
-                            <span class="cost">10G</span>
-                        </button>
-                        <button class="btn-gacha" id="ten-pull-btn">
-                            <span>10회 뽑기</span>
-                            <span class="cost">90G</span>
-                        </button>
+                        <div class="button-grid" id="gacha-button-grid">
+                            <button class="btn-gacha" id="single-pull-btn">
+                                <span>1회 뽑기</span>
+                                <span class="cost">10G</span>
+                            </button>
+                            <button class="btn-gacha" id="ten-pull-btn">
+                                <span>10회 뽑기</span>
+                                <span class="cost">90G</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
