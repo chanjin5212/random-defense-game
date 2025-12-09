@@ -1,103 +1,132 @@
-/* 게임 레이아웃 - 70/30 분할 */
+/* 모바일 친화적 레이아웃 - 세로 방향 (최적화) */
 
-.game-container {
+/* 모바일 게임 컨테이너 */
+.mobile-game-container {
     display: flex;
+    flex-direction: column;
     width: 100%;
     height: 100vh;
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    gap: 0;
+    overflow: hidden;
 }
 
-/* 왼쪽 게임 영역 (70%) */
-.game-area {
-    flex: 0 0 70%;
+/* 상단 게임 영역 */
+.game-area-mobile {
     display: flex;
     flex-direction: column;
-    padding: 20px;
-    position: relative;
+    padding: 8px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
 }
 
-/* 상단 HUD */
-.hud-top {
+/* 모바일 HUD */
+.hud-mobile {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
-    padding: 15px 20px;
+    padding: 8px;
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
-    border-radius: 10px;
-    margin-bottom: 15px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    flex-shrink: 0;
 }
 
-.hud-left,
-.hud-center,
-.hud-right {
+.hud-item {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: 2px;
 }
 
-.round-display,
-.timer-display,
-.gold-display {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.label {
+.hud-item .label {
     color: rgba(241, 245, 249, 0.7);
-    font-size: 14px;
+    font-size: 11px;
 }
 
-.value {
+.hud-item .value {
     color: #F1F5F9;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: bold;
-}
-
-.gold {
-    color: #FBBF24;
 }
 
 /* 게임 캔버스 */
 #game-canvas {
     width: 100%;
-    height: calc(100vh - 180px);
-    /* 상단 HUD + 하단 정보 + 패딩 고려 */
-    max-height: 700px;
-    border-radius: 10px;
+    height: 100%;
+    max-height: calc(100vh - 180px);
+    object-fit: contain;
+    border-radius: 8px;
     background: rgba(0, 0, 0, 0.3);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    touch-action: none;
+    display: block;
 }
 
-/* 하단 정보 */
-.hud-bottom {
-    margin-top: 15px;
-    padding: 10px 20px;
+/* 모바일 통계 */
+.stats-mobile {
+    display: flex;
+    justify-content: space-around;
+    padding: 6px;
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
-    border-radius: 10px;
+    border-radius: 8px;
+    margin-top: 8px;
+    color: #F1F5F9;
+    font-size: 11px;
+    flex-shrink: 0;
 }
 
-.stats-display {
+/* 패널 토글 버튼 */
+.panel-toggle-btn {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+    border: none;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
     display: flex;
     justify-content: center;
-    gap: 20px;
-    color: #F1F5F9;
-    font-size: 14px;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    z-index: 100;
+    flex-shrink: 0;
 }
 
-/* 우측 컨트롤 패널 (30%) */
-.control-panel {
-    flex: 0 0 30%;
-    background: rgba(0, 0, 0, 0.4);
+.panel-toggle-btn:active {
+    transform: scale(0.98);
+}
+
+.toggle-icon {
+    font-size: 12px;
+    transition: transform 0.3s ease;
+}
+
+.panel-toggle-btn.open .toggle-icon {
+    transform: rotate(180deg);
+}
+
+/* 하단 컨트롤 패널 */
+.control-panel-mobile {
+    max-height: 0;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.9);
     backdrop-filter: blur(20px);
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    flex-direction: column;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    transition: max-height 0.4s ease;
+}
+
+.control-panel-mobile.open {
+    max-height: 60vh;
     overflow-y: auto;
-    padding: 20px;
+}
+
+.control-panel-mobile .panel-view {
+    padding: 12px;
 }
 
 /* 패널 뷰 전환 */
@@ -113,36 +142,38 @@
 .panel-section {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 15px;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
 }
 
 .panel-section h3 {
     color: #F1F5F9;
-    font-size: 16px;
-    margin: 0 0 15px 0;
-    padding-bottom: 10px;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    font-size: 13px;
+    margin: 0 0 8px 0;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* 버튼 스타일 */
+/* 버튼 스타일 - 컴팩트 */
 .btn-gacha,
 .btn-boss,
+.btn-upgrade,
 .btn-back {
     width: 100%;
-    padding: 15px;
+    padding: 10px 12px;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     color: white;
-    font-size: 16px;
+    font-size: 13px;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
+    min-height: 40px;
 }
 
 .btn-gacha {
@@ -153,15 +184,19 @@
     background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
 }
 
+.btn-upgrade {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+}
+
 .btn-back {
     background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);
 }
 
-.btn-gacha:hover:not(:disabled),
-.btn-boss:hover:not(:disabled),
-.btn-back:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+.btn-gacha:active:not(:disabled),
+.btn-boss:active:not(:disabled),
+.btn-upgrade:active:not(:disabled),
+.btn-back:active {
+    transform: scale(0.98);
 }
 
 .btn-gacha:disabled,
@@ -173,61 +208,168 @@
 .cost,
 .cooldown {
     background: rgba(0, 0, 0, 0.3);
-    padding: 4px 12px;
-    border-radius: 5px;
-    font-size: 14px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 11px;
 }
 
 /* 타워 목록 */
 .tower-list {
-    max-height: 500px;
+    max-height: 300px;
     overflow-y: auto;
 }
 
 .tower-item {
     background: rgba(255, 255, 255, 0.1);
-    padding: 12px;
-    margin: 8px 0;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border-left: 4px solid;
-}
-
-.tower-item:hover {
-    background: rgba(255, 255, 255, 0.15);
-    transform: translateX(5px);
+    padding: 8px;
+    margin: 6px 0;
+    border-radius: 6px;
+    border-left: 3px solid;
 }
 
 .tower-item-name {
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 4px;
+    font-size: 13px;
 }
 
 .tower-item-stats {
-    font-size: 12px;
+    font-size: 11px;
     opacity: 0.8;
 }
 
 /* 스크롤바 */
-.control-panel::-webkit-scrollbar,
+.control-panel-mobile::-webkit-scrollbar,
 .tower-list::-webkit-scrollbar {
-    width: 8px;
+    width: 4px;
 }
 
-.control-panel::-webkit-scrollbar-track,
+.control-panel-mobile::-webkit-scrollbar-track,
 .tower-list::-webkit-scrollbar-track {
     background: rgba(255, 255, 255, 0.05);
-    border-radius: 4px;
+    border-radius: 2px;
 }
 
-.control-panel::-webkit-scrollbar-thumb,
+.control-panel-mobile::-webkit-scrollbar-thumb,
 .tower-list::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
+    border-radius: 2px;
 }
 
-/* 기존 side-panel 숨기기 */
-.side-panel {
-    display: none !important;
+/* 데스크톱 레이아웃 숨기기 */
+.game-container {
+    display: none;
+}
+
+/* 관리자 패널 */
+.admin-spawn {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.admin-select {
+    padding: 8px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 12px;
+}
+
+.btn-admin-spawn {
+    padding: 10px;
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* 타워 강화 목록 */
+.tower-upgrade-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.upgrade-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    padding: 10px;
+    border-left: 3px solid;
+}
+
+.upgrade-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.upgrade-name {
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.upgrade-level {
+    font-size: 11px;
+    opacity: 0.8;
+}
+
+.upgrade-stats {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-bottom: 6px;
+}
+
+.upgrade-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.upgrade-cost {
+    font-size: 12px;
+    color: #FBBF24;
+}
+
+.upgrade-max {
+    font-size: 12px;
+    color: #10B981;
+}
+
+.btn-upgrade-action {
+    padding: 6px 12px;
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-upgrade-action.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.gold {
+    color: #FBBF24;
+}
+
+/* 판매 버튼 스타일 */
+.btn-sell {
+    background: #ef4444;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    padding: 5px 10px;
+    font-size: 11px;
+    cursor: pointer;
+    margin-left: 6px;
+    flex-shrink: 0;
+    min-width: 60px;
 }

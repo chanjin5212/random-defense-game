@@ -5,11 +5,11 @@ const CONFIG = {
     GAME: {
         MAX_ROUNDS: Infinity, // 무한 라운드
         ROUND_DURATION: 30, // 초
-        GRID_ROWS: 5, // 그리드 행 수
-        GRID_COLS: 8, // 그리드 열 수
+        GRID_ROWS: 2, // 그리드 행 수 (모바일 최적화)
+        GRID_COLS: 4, // 그리드 열 수 (모바일 최적화)
         TOWERS_PER_SLOT: 10, // 각 칸당 최대 타워 수
-        CANVAS_WIDTH: 1200,
-        CANVAS_HEIGHT: 700,
+        CANVAS_WIDTH: 800, // 모바일 너비
+        CANVAS_HEIGHT: 600, // 모바일 높이
         FPS: 60
     },
 
@@ -253,25 +253,25 @@ const CONFIG = {
         XP_PER_ROUND: 5
     },
 
-    // 맵 경로 (사각형 루트)
+    // 맵 경로 (사각형 루트 - 모바일 800x600 기준)
     PATH: {
         points: [
-            { x: 100, y: 100 },   // 시작 (좌상단)
-            { x: 1100, y: 100 },  // 우상단
-            { x: 1100, y: 600 },  // 우하단
-            { x: 100, y: 600 },   // 좌하단
-            { x: 100, y: 100 }    // 다시 좌상단 (루프)
+            { x: 80, y: 80 },    // 시작 (좌상단)
+            { x: 720, y: 80 },   // 우상단
+            { x: 720, y: 520 },  // 우하단
+            { x: 80, y: 520 },   // 좌하단
+            { x: 80, y: 80 }     // 다시 좌상단 (루프)
         ]
     },
 
-    // 그리드 영역 (타워 배치 가능 영역)
+    // 그리드 영역 (타워 배치 가능 영역 - 모바일 최적화)
     GRID_AREA: {
-        x: 200,
+        x: 100,
         y: 150,
-        width: 800,
-        height: 400,
-        cellWidth: 100,
-        cellHeight: 80
+        width: 600, // 4칸 x 150px
+        height: 300, // 2칸 x 150px
+        cellWidth: 150, // 큰 셀 크기 (터치 친화적)
+        cellHeight: 150
     }
 };
 

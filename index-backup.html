@@ -3,8 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>★ 랜덤 디펜스 (모바일) ★</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>★ 랜덤 디펜스 ★</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="layout.css">
 </head>
@@ -60,48 +60,52 @@
         </div>
     </div>
 
-    <!-- 게임 화면 (모바일 레이아웃) -->
+    <!-- 게임 화면 (새 레이아웃) -->
     <div id="game-screen" class="screen">
-        <div class="mobile-game-container">
-            <!-- 상단 게임 영역 -->
-            <div class="game-area-mobile">
+        <div class="game-container">
+            <!-- 왼쪽 게임 영역 (60%) -->
+            <div class="game-area">
                 <!-- 상단 HUD -->
-                <div class="hud-mobile">
-                    <div class="hud-item">
-                        <span class="label">라운드</span>
-                        <span class="value" id="current-round">1</span>
+                <div class="hud-top">
+                    <div class="hud-left">
+                        <div class="round-display">
+                            <span class="label">라운드</span>
+                            <span class="value" id="current-round">1</span>
+                            <span class="max">/100</span>
+                        </div>
                     </div>
-                    <div class="hud-item">
-                        <span class="label">시간</span>
-                        <span class="value" id="round-timer">30</span>
+                    <div class="hud-center">
+                        <div class="timer-display">
+                            <span class="label">남은 시간</span>
+                            <span class="value" id="round-timer">30</span>
+                            <span>초</span>
+                        </div>
                     </div>
-                    <div class="hud-item">
-                        <span class="label">골드</span>
-                        <span class="value gold" id="game-gold">50</span>
+                    <div class="hud-right">
+                        <div class="gold-display">
+                            <span class="label">골드</span>
+                            <span class="value gold" id="game-gold">50</span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- 게임 캔버스 -->
-                <canvas id="game-canvas" width="800" height="600"></canvas>
+                <canvas id="game-canvas" width="1200" height="700"></canvas>
 
-                <!-- 하단 통계 -->
-                <div class="stats-mobile">
-                    <span>몬스터: <span id="monster-count">0</span>/300</span>
-                    <span>|</span>
-                    <span>처치: <span id="kill-count">0</span></span>
-                    <span>|</span>
-                    <span>DPS: <span id="dps-display">0</span></span>
+                <!-- 하단 정보 -->
+                <div class="hud-bottom">
+                    <div class="stats-display">
+                        <span>몬스터: <span id="monster-count">0</span>/<span>300</span></span>
+                        <span>|</span>
+                        <span>처치: <span id="kill-count">0</span></span>
+                        <span>|</span>
+                        <span>DPS: <span id="dps-display">0</span></span>
+                    </div>
                 </div>
             </div>
 
-            <!-- 패널 토글 버튼 -->
-            <button class="panel-toggle-btn" id="panel-toggle-btn">
-                <span class="toggle-icon">▲</span>
-                <span class="toggle-text">메뉴</span>
-            </button>
-
-            <!-- 하단 컨트롤 패널 (접을 수 있음) -->
-            <div class="control-panel-mobile" id="control-panel-mobile">
+            <!-- 우측 컨트롤 패널 (30%) -->
+            <div class="control-panel">
                 <!-- 기본 뷰 (메인 메뉴) -->
                 <div id="main-view" class="panel-view active">
                     <div class="panel-section">
@@ -147,6 +151,7 @@
                             </button>
                         </div>
                     </div>
+
 
                     <div class="panel-section">
                         <h3>타워 뽑기</h3>
@@ -220,7 +225,7 @@
         </div>
     </div>
 
-    <!-- 모달들 -->
+    <!-- 모달들은 그대로 유지 -->
     <div id="upgrades-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -275,13 +280,15 @@
     <!-- 전역 에러 핸들러 (디버깅용) -->
     <script>
         window.onerror = function (msg, url, line, col, error) {
+            // 토스트나 알림으로 에러 표시
             const errorMsg = `오류 발생: ${msg}\n위치: ${url}:${line}`;
             console.error(errorMsg);
+            // alert(errorMsg); // 너무 자주 뜨면 방해되므로 주석 처리하거나 필요시 활성화
         };
     </script>
 
-    <!-- JavaScript 파일들 -->
-    <script src="js/config.js?v=mobile1"></script>
+    <!-- JavaScript 파일들 (캐시 방지용 버전 태그 추가) -->
+    <script src="js/config.js?v=debug1"></script>
     <script src="js/utils.js?v=debug1"></script>
     <script src="js/monster.js?v=debug1"></script>
     <script src="js/tower.js?v=debug2"></script>
@@ -297,7 +304,6 @@
     <script src="js/game.js?v=debug1"></script>
     <script src="js/panel-manager.js?v=debug1"></script>
     <script src="js/tower-click.js?v=debug1"></script>
-    <script src="js/panel-toggle.js?v=mobile1"></script>
 </body>
 
 </html>

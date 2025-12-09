@@ -116,6 +116,14 @@ function updateGameUI() {
         singleBtn.disabled = !hasSelection || !hasGoldForSingle || cellFull;
         tenBtn.disabled = !hasSelection || !hasGoldForTen || cellFull;
     }
+
+    // 타워 강화 화면이 열려있으면 업데이트
+    const upgradeView = document.getElementById('upgrade-view');
+    if (upgradeView && upgradeView.classList.contains('active')) {
+        if (typeof updateTowerUpgradeList === 'function') {
+            updateTowerUpgradeList();
+        }
+    }
 }
 
 function showGameOver() {
