@@ -5,9 +5,9 @@ const CONFIG = {
     GAME: {
         MAX_ROUNDS: Infinity, // 무한 라운드
         ROUND_DURATION: 30, // 초
-        GRID_ROWS: 2, // 그리드 행 수 (모바일 최적화)
+        GRID_ROWS: 3, // 그리드 행 수 (모바일 최적화)
         GRID_COLS: 4, // 그리드 열 수 (모바일 최적화)
-        TOWERS_PER_SLOT: 10, // 각 칸당 최대 타워 수
+        TOWERS_PER_SLOT: 50, // 각 칸당 최대 타워 수 (물량전)
         CANVAS_WIDTH: 800, // 모바일 너비
         CANVAS_HEIGHT: 600, // 모바일 높이
         FPS: 60
@@ -267,9 +267,9 @@ const CONFIG = {
     // 그리드 영역 (타워 배치 가능 영역 - 모바일 최적화)
     GRID_AREA: {
         x: 100,
-        y: 150,
+        y: 100,
         width: 600, // 4칸 x 150px
-        height: 300, // 2칸 x 150px
+        height: 450, // 3칸 x 150px
         cellWidth: 150, // 큰 셀 크기 (터치 친화적)
         cellHeight: 150
     }

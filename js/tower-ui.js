@@ -16,33 +16,20 @@ document.addEventListener('click', function (e) {
     }
 });
 
-function showTowerDetails(tower) {
-    const details = tower.getDetails();
+// 필터 버튼 처리
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.btn-filter');
+    if (!btn) return;
 
-    // 데미지 표시 형식 결정
-    let damageDisplay = `${details.damage}`;
-    if (details.bonusDamage > 0) {
-        damageDisplay = `${details.baseDamage}+${details.bonusDamage}`;
-    }
+    if (!window.game || !window.game.towerManager.selectedCell) return;
 
-    const message = `
-타워: ${details.name}
-등급: ${details.rarity}
-데미지: ${damageDisplay}
-공격속도: ${details.attackSpeed}초
-사정거리: ${details.range}
-효과: ${details.effect}
-위치: (${details.gridX}, ${details.gridY})
-판매가: ${details.sellPrice}G
-    `.trim();
+    const category = btn.dataset.category; // 'type' or 'rarity'
+    const value = btn.dataset.value;
+    const { x, y } = window.game.towerManager.selectedCell;
 
-    if (confirm(message + '\n\n이 타워를 판매하시겠습니까?')) {
-        if (window.game && window.game.towerManager.sellTower(tower)) {
-            showToast(`타워 판매 완료! +${details.sellPrice}G`, 'success');
-            updateCellTowerList(); // 목록 갱신
-        }
-    }
-}
+    window.game.towerManager.setCellFilter(x, y, category, value);
+    updateCellTowerList(); // UI 갱신
+});
 
 function updateCellTowerList() {
     const listDiv = document.getElementById('cell-tower-list');
@@ -60,40 +47,94 @@ function updateCellTowerList() {
     const towers = window.game.towerManager.grid[y][x];
 
     if (cellInfoSpan) {
-        cellInfoSpan.textContent = `(${x}, ${y}) - ${towers.length}/10`;
-    }
-
-    if (towers.length === 0) {
-        listDiv.innerHTML = '<p style="text-align: center; opacity: 0.6; color: #F1F5F9;">이 칸에 타워가 없습니다</p>';
-        return;
+        cellInfoSpan.textContent = `(${x}, ${y}) - ${towers.length}/${CONFIG.GAME.TOWERS_PER_SLOT}`;
     }
 
     let html = '';
-    towers.forEach((tower, index) => {
-        const details = tower.getDetails();
 
-        // 데미지 표시 형식 결정
-        let damageDisplay = `${details.damage}`;
-        if (details.bonusDamage > 0) {
-            damageDisplay = `${details.baseDamage}+<span style="color: #10B981;">${details.bonusDamage}</span>`;
-        }
+    // 필터 설정 UI
+    const currentFilter = window.game.towerManager.getCellFilter(x, y);
+    const typeFilter = currentFilter.type;
+    const rarityFilter = currentFilter.rarity;
 
-        html += `
-            <div class="tower-item" style="border-left-color: ${tower.rarityData.color}; display: flex; justify-content: space-between; align-items: center; padding: 8px; margin-bottom: 8px; background: rgba(0,0,0,0.2); border-left-width: 4px; border-left-style: solid; border-radius: 4px;">
-                <div class="tower-info" style="flex: 1; pointer-events: none;">
-                    <div class="tower-item-name" style="color: ${tower.rarityData.color}; font-weight: bold;">
-                        ${details.name}
-                    </div>
-                    <div class="tower-item-stats" style="font-size: 0.8em; opacity: 0.8;">
-                        ${details.rarity} | Dmg: ${damageDisplay}
-                    </div>
-                </div>
-                <button class="btn-sell" data-x="${x}" data-y="${y}" data-index="${index}" style="background: #ef4444; border: none; border-radius: 4px; color: white; padding: 6px 12px; font-size: 0.9em; cursor: pointer; margin-left: 8px; flex-shrink: 0; min-width: 70px;">
-                    판매 <span style="font-weight: bold; color: #fbbf24;">${tower.sellPrice}G</span>
+    html += `
+        <div class="filter-section" style="margin-bottom: 15px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;">
+            <div style="font-size: 12px; color: #ccc; margin-bottom: 8px;">자동 집결 필터 (종류 + 등급)</div>
+            
+            <!-- 종류 필터 -->
+            <div style="display: flex; gap: 5px; margin-bottom: 5px;">
+                <button class="btn-filter ${typeFilter === 'STANDARD' ? 'active' : ''}" data-category="type" data-value="STANDARD" 
+                    style="flex: 1; padding: 6px; border: 1px solid #444; border-radius: 4px; background: ${typeFilter === 'STANDARD' ? '#3B82F6' : '#1e293b'}; color: white; font-size: 11px; cursor: pointer;">
+                    일반
                 </button>
+                <button class="btn-filter ${typeFilter === 'SPLASH' ? 'active' : ''}" data-category="type" data-value="SPLASH" 
+                    style="flex: 1; padding: 6px; border: 1px solid #444; border-radius: 4px; background: ${typeFilter === 'SPLASH' ? '#EF4444' : '#1e293b'}; color: white; font-size: 11px; cursor: pointer;">
+                    광역
+                </button>
+                <button class="btn-filter ${typeFilter === 'SNIPER' ? 'active' : ''}" data-category="type" data-value="SNIPER" 
+                    style="flex: 1; padding: 6px; border: 1px solid #444; border-radius: 4px; background: ${typeFilter === 'SNIPER' ? '#10B981' : '#1e293b'}; color: white; font-size: 11px; cursor: pointer;">
+                    저격
+                </button>
+            </div>
+
+            <!-- 등급 필터 -->
+            <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                <button class="btn-filter ${rarityFilter === 'COMMON' ? 'active' : ''}" data-category="rarity" data-value="COMMON" 
+                    style="flex: 1; padding: 4px; border: 1px solid #444; border-radius: 4px; background: ${rarityFilter === 'COMMON' ? '#94A3B8' : '#1e293b'}; color: white; font-size: 10px; cursor: pointer;">
+                    일반
+                </button>
+                <button class="btn-filter ${rarityFilter === 'UNCOMMON' ? 'active' : ''}" data-category="rarity" data-value="UNCOMMON" 
+                    style="flex: 1; padding: 4px; border: 1px solid #444; border-radius: 4px; background: ${rarityFilter === 'UNCOMMON' ? '#10B981' : '#1e293b'}; color: white; font-size: 10px; cursor: pointer;">
+                    고급
+                </button>
+                <button class="btn-filter ${rarityFilter === 'RARE' ? 'active' : ''}" data-category="rarity" data-value="RARE" 
+                    style="flex: 1; padding: 4px; border: 1px solid #444; border-radius: 4px; background: ${rarityFilter === 'RARE' ? '#3B82F6' : '#1e293b'}; color: white; font-size: 10px; cursor: pointer;">
+                    희귀
+                </button>
+                <button class="btn-filter ${rarityFilter === 'EPIC' ? 'active' : ''}" data-category="rarity" data-value="EPIC" 
+                    style="flex: 1; padding: 4px; border: 1px solid #444; border-radius: 4px; background: ${rarityFilter === 'EPIC' ? '#8B5CF6' : '#1e293b'}; color: white; font-size: 10px; cursor: pointer;">
+                    영웅
+                </button>
+                <button class="btn-filter ${rarityFilter === 'LEGENDARY' ? 'active' : ''}" data-category="rarity" data-value="LEGENDARY" 
+                    style="flex: 1; padding: 4px; border: 1px solid #444; border-radius: 4px; background: ${rarityFilter === 'LEGENDARY' ? '#F59E0B' : '#1e293b'}; color: white; font-size: 10px; cursor: pointer;">
+                    전설
+                </button>
+            </div>
+        </div>
+    `;
+
+    if (towers.length === 0) {
+        html += '<p style="text-align: center; opacity: 0.6; color: #F1F5F9;">이 칸에 타워가 없습니다</p>';
+        listDiv.innerHTML = html;
+        return;
+    }
+
+    // 타워 요약 (Summary View)
+    const summary = {};
+    towers.forEach(tower => {
+        const key = `${tower.rarityData.name} ${tower.towerData.name}`;
+        if (!summary[key]) {
+            summary[key] = {
+                count: 0,
+                color: tower.rarityData.color,
+                name: key
+            };
+        }
+        summary[key].count++;
+    });
+
+    html += '<div class="tower-summary" style="display: flex; flex-direction: column; gap: 5px;">';
+
+    Object.values(summary).sort((a, b) => b.count - a.count).forEach(item => {
+        html += `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; border-left: 3px solid ${item.color};">
+                <span style="color: ${item.color}; font-weight: bold; font-size: 0.9em;">${item.name}</span>
+                <span style="font-weight: bold; color: white;">x${item.count}</span>
             </div>
         `;
     });
+
+    html += '</div>';
 
     listDiv.innerHTML = html;
 }

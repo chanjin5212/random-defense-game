@@ -117,10 +117,72 @@ class Renderer {
 
             for (let y = 0; y < CONFIG.GAME.GRID_ROWS; y++) {
                 for (let x = 0; x < CONFIG.GAME.GRID_COLS; x++) {
+                    const cellX = grid.x + (x * cellWidth);
+                    const cellY = grid.y + (y * cellHeight);
+
+                    // 필터 표시
+                    const filter = window.game.towerManager.getCellFilter(x, y);
+                    if (filter && (filter.type || filter.rarity)) {
+                        this.ctx.save();
+
+                        // 1. 종류 필터 (Top Left)
+                        if (filter.type) {
+                            let color = '#FFFFFF';
+                            let label = '';
+                            if (filter.type === 'STANDARD') { color = '#3B82F6'; label = '일반'; }
+                            else if (filter.type === 'SPLASH') { color = '#EF4444'; label = '광역'; }
+                            else if (filter.type === 'SNIPER') { color = '#10B981'; label = '저격'; }
+
+                            // 배경
+                            this.ctx.fillStyle = color;
+                            this.ctx.globalAlpha = 0.2;
+                            this.ctx.fillRect(cellX + 2, cellY + 2, 40, 18);
+
+                            // 텍스트
+                            this.ctx.globalAlpha = 1.0;
+                            this.ctx.fillStyle = color;
+                            this.ctx.font = 'bold 11px Arial';
+                            this.ctx.textAlign = 'left';
+                            this.ctx.textBaseline = 'top';
+                            this.ctx.fillText(label, cellX + 5, cellY + 5);
+                        }
+
+                        // 2. 등급 필터 (Bottom Left)
+                        if (filter.rarity) {
+                            let color = '#FFFFFF';
+                            let label = '';
+                            switch (filter.rarity) {
+                                case 'COMMON': color = '#94A3B8'; label = '일반'; break;
+                                case 'UNCOMMON': color = '#10B981'; label = '고급'; break;
+                                case 'RARE': color = '#3B82F6'; label = '희귀'; break;
+                                case 'EPIC': color = '#8B5CF6'; label = '영웅'; break;
+                                case 'LEGENDARY': color = '#F59E0B'; label = '전설'; break;
+                            }
+
+                            // 배경
+                            this.ctx.fillStyle = color;
+                            this.ctx.globalAlpha = 0.2;
+                            this.ctx.fillRect(cellX + 2, cellY + 22, 40, 18);
+
+                            // 텍스트
+                            this.ctx.globalAlpha = 1.0;
+                            this.ctx.fillStyle = color;
+                            this.ctx.font = 'bold 10px Arial';
+                            this.ctx.textAlign = 'left';
+                            this.ctx.textBaseline = 'top';
+                            this.ctx.fillText(label, cellX + 5, cellY + 25);
+                        }
+
+                        this.ctx.restore();
+                    }
+
+                    // 타워 개수 표시
                     const count = window.game.towerManager.getCellTowerCount(x, y);
                     if (count > 0) {
-                        const cellX = grid.x + (x * cellWidth);
-                        const cellY = grid.y + (y * cellHeight);
+                        this.ctx.fillStyle = '#CBD5E1';
+                        this.ctx.font = '12px Arial';
+                        this.ctx.textAlign = 'right';
+                        this.ctx.textBaseline = 'top';
                         this.ctx.fillText(
                             `${count}/10`,
                             cellX + cellWidth - 5,

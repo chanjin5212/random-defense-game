@@ -80,7 +80,7 @@ class Game {
             // 셀 선택
             if (this.towerManager.selectCell(gridX, gridY)) {
                 const count = this.towerManager.getCellTowerCount(gridX, gridY);
-                showToast(`칸 선택됨 (${count}/10)`, 'success');
+                showToast(`칸 선택됨 (${count}/${CONFIG.GAME.TOWERS_PER_SLOT})`, 'success');
             }
         }
     }

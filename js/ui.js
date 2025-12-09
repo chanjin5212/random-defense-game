@@ -113,8 +113,8 @@ function updateGameUI() {
             cellFull = count >= CONFIG.GAME.TOWERS_PER_SLOT;
         }
 
-        singleBtn.disabled = !hasSelection || !hasGoldForSingle || cellFull;
-        tenBtn.disabled = !hasSelection || !hasGoldForTen || cellFull;
+        singleBtn.disabled = !hasGoldForSingle || cellFull;
+        tenBtn.disabled = !hasGoldForTen || cellFull;
     }
 
     // 타워 강화 화면이 열려있으면 업데이트

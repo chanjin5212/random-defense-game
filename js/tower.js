@@ -51,7 +51,7 @@ class Tower {
         this.originalAttackSpeed = this.attackSpeed; // 공속 복구용
     }
 
-    setPosition() {
+    setPosition(instant = true) {
         const grid = CONFIG.GRID_AREA;
         const cellWidth = grid.cellWidth;
         const cellHeight = grid.cellHeight;
@@ -59,14 +59,42 @@ class Tower {
         const cellCenterX = grid.x + (this.gridX * cellWidth) + (cellWidth / 2);
         const cellCenterY = grid.y + (this.gridY * cellHeight) + (cellHeight / 2);
 
-        const angle = (Math.PI * 2 / CONFIG.GAME.TOWERS_PER_SLOT) * this.slotIndex;
-        const radius = 25;
+        // 랜덤 산개 배치 (자연스럽게)
+        // 시드 기반 랜덤을 사용하면 좋겠지만, 간단하게 슬롯 인덱스 기반으로 약간의 랜덤성 부여
+        const angle = (Math.PI * 2 / CONFIG.GAME.TOWERS_PER_SLOT) * this.slotIndex + (Math.random() * 0.5 - 0.25);
+        const radius = 20 + (Math.random() * 20); // 20~40 범위로 산개
 
-        this.x = cellCenterX + Math.cos(angle) * radius;
-        this.y = cellCenterY + Math.sin(angle) * radius;
+        this.targetX = cellCenterX + Math.cos(angle) * radius;
+        this.targetY = cellCenterY + Math.sin(angle) * radius;
+
+        if (instant) {
+            this.x = this.targetX;
+            this.y = this.targetY;
+            this.isMoving = false;
+        } else {
+            this.isMoving = true;
+            this.moveSpeed = 500; // 픽셀/초
+        }
     }
 
     update(deltaTime, monsters) {
+        // 이동 로직
+        if (this.isMoving) {
+            const dx = this.targetX - this.x;
+            const dy = this.targetY - this.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < 5) {
+                this.x = this.targetX;
+                this.y = this.targetY;
+                this.isMoving = false;
+            } else {
+                const moveDist = this.moveSpeed * deltaTime;
+                this.x += (dx / dist) * moveDist;
+                this.y += (dy / dist) * moveDist;
+            }
+        }
+
         // 스킬 업데이트
         this.updateSkills(deltaTime, monsters);
 
@@ -703,6 +731,127 @@ class TowerManager {
         }
         this.selectedCell = null;
         this.selectedTower = null; // 선택된 타워
+
+        // 셀 필터 초기화 (Dual Filter: { type: null, rarity: null })
+        this.cellFilters = [];
+        for (let y = 0; y < CONFIG.GAME.GRID_ROWS; y++) {
+            this.cellFilters[y] = [];
+            for (let x = 0; x < CONFIG.GAME.GRID_COLS; x++) {
+                this.cellFilters[y][x] = { type: null, rarity: null };
+            }
+        }
+    }
+
+    setCellFilter(x, y, category, value) {
+        if (x >= 0 && x < CONFIG.GAME.GRID_COLS && y >= 0 && y < CONFIG.GAME.GRID_ROWS) {
+            // category: 'type' or 'rarity'
+            if (this.cellFilters[y][x][category] === value) {
+                this.cellFilters[y][x][category] = null; // 토글 해제
+            } else {
+                this.cellFilters[y][x][category] = value; // 설정
+            }
+
+            // 필터 변경 시 모든 타워 재배치 시도
+            this.redistributeTowers();
+            return true;
+        }
+        return false;
+    }
+
+    getCellFilter(x, y) {
+        if (x >= 0 && x < CONFIG.GAME.GRID_COLS && y >= 0 && y < CONFIG.GAME.GRID_ROWS) {
+            return this.cellFilters[y][x];
+        }
+        return null;
+    }
+
+    findTargetCell(towerType, towerRarity, currentTower = null) {
+        let bestScore = -1;
+        let bestCandidates = [];
+
+        for (let y = 0; y < CONFIG.GAME.GRID_ROWS; y++) {
+            for (let x = 0; x < CONFIG.GAME.GRID_COLS; x++) {
+                const filter = this.cellFilters[y][x];
+                const count = this.grid[y][x].length;
+
+                let isCurrentPos = false;
+                if (currentTower && currentTower.gridX === x && currentTower.gridY === y) {
+                    isCurrentPos = true;
+                }
+
+                if (!isCurrentPos && count >= CONFIG.GAME.TOWERS_PER_SLOT) continue;
+
+                // 점수 계산
+                let score = 0;
+
+                // 필터 매칭 점수
+                const typeMatch = filter.type === towerType;
+                const rarityMatch = filter.rarity === towerRarity;
+                const typeSet = filter.type !== null;
+                const raritySet = filter.rarity !== null;
+
+                if (typeSet && raritySet) {
+                    if (typeMatch && rarityMatch) score = 30; // 완벽 일치
+                    else score = -1; // 둘 다 설정됐는데 하나라도 안 맞으면 탈락
+                } else if (typeSet) {
+                    if (typeMatch) score = 20;
+                    else score = -1;
+                } else if (raritySet) {
+                    if (rarityMatch) score = 20;
+                    else score = -1;
+                } else {
+                    // 필터 없음
+                    score = 10;
+                }
+
+                // 점수가 -1이면 스킵
+                if (score === -1) continue;
+
+                // 현재 위치 우대 (불필요한 이동 방지)
+                if (isCurrentPos) score += 5;
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestCandidates = [{ x, y }];
+                } else if (score === bestScore) {
+                    bestCandidates.push({ x, y });
+                }
+            }
+        }
+
+        if (bestCandidates.length > 0) {
+            // 후보 중 좌상단 우선
+            bestCandidates.sort((a, b) => (a.y * CONFIG.GAME.GRID_COLS + a.x) - (b.y * CONFIG.GAME.GRID_COLS + b.x));
+            return bestCandidates[0];
+        }
+
+        return null; // 갈 곳이 없음
+    }
+
+    spawnTowerGlobal(towerKey, rarity) {
+        const towerType = towerKey;
+        const target = this.findTargetCell(towerType, rarity);
+
+        if (!target) {
+            return { success: false, reason: '배치할 공간이 없습니다.' };
+        }
+
+        const { x, y } = target;
+        const cell = this.grid[y][x];
+        const slotIndex = cell.length;
+
+        const tower = new Tower(towerKey, rarity, x, y, slotIndex);
+
+        // 초기 위치 설정 (화면 중앙 하단에서 시작)
+        tower.x = CONFIG.GAME.CANVAS_WIDTH / 2;
+        tower.y = CONFIG.GAME.CANVAS_HEIGHT + 50; // 화면 밖에서 날아오기
+
+        // 목표 위치로 이동 시작
+        tower.setPosition(false); // instant = false
+
+        cell.push(tower);
+
+        return { success: true, tower: tower, x, y };
     }
 
     selectCell(gridX, gridY) {
@@ -830,5 +979,50 @@ class TowerManager {
         }
         this.selectedCell = null;
         this.selectedTower = null;
+    }
+
+    // 모든 타워에 대해 다시 목적지를 계산하고 이동 명령
+    redistributeTowers() {
+        console.log('redistributeTowers called');
+        const allTowers = this.getAllTowers();
+
+        allTowers.forEach(tower => {
+            const bestCell = this.findTargetCell(tower.towerKey, tower.rarity, tower);
+
+            if (bestCell) {
+                // 목표가 변경되었거나, 현재 위치가 아닌 경우 이동
+                if (bestCell.x !== tower.gridX || bestCell.y !== tower.gridY) {
+                    // 즉시 논리적 그리드 이동 수행
+                    this.moveTowerLogical(tower, bestCell.x, bestCell.y);
+
+                    // 시각적 이동 시작
+                    tower.setPosition(false);
+                }
+            }
+        });
+    }
+
+    moveTowerLogical(tower, newX, newY) {
+        const oldX = tower.gridX;
+        const oldY = tower.gridY;
+
+        // 기존 칸에서 제거
+        const oldCell = this.grid[oldY][oldX];
+        const idx = oldCell.indexOf(tower);
+        if (idx > -1) {
+            oldCell.splice(idx, 1);
+            // 기존 칸 슬롯 재정렬 (빈 공간 없애기)
+            oldCell.forEach((t, i) => {
+                t.slotIndex = i;
+                if (!t.isMoving) t.setPosition(true); // 정지해 있는 타워만 위치 재조정
+            });
+        }
+
+        // 새 칸에 추가
+        const newCell = this.grid[newY][newX];
+        tower.gridX = newX;
+        tower.gridY = newY;
+        tower.slotIndex = newCell.length;
+        newCell.push(tower);
     }
 }
