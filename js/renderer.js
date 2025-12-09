@@ -313,6 +313,13 @@ class Renderer {
             game.towerManager.draw(this.ctx);
         }
 
+        // 마그마 풀 렌더링 (몬스터 아래에 그려지도록)
+        if (game.magmaPools) {
+            game.magmaPools.forEach(pool => {
+                this.drawMagmaPool(pool);
+            });
+        }
+
         // 몬스터 렌더링
         if (game.monsterManager) {
             game.monsterManager.draw(this.ctx);
@@ -527,6 +534,44 @@ class Renderer {
             ctx.globalAlpha = Math.random() * 0.3 + 0.3;
             ctx.stroke();
         }
+
+        ctx.restore();
+    }
+
+    drawMagmaPool(pool) {
+        const ctx = this.ctx;
+        const { x, y, radius, timer, duration } = pool;
+        const alpha = Math.min(1, timer / duration); // 시간에 따라 페이드아웃
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+
+        // 마그마 그라데이션 (더 진하고 밝게)
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+        gradient.addColorStop(0, 'rgba(255, 200, 0, 1.0)'); // 중심: 밝은 노랑-주황
+        gradient.addColorStop(0.3, 'rgba(255, 100, 0, 0.9)'); // 중간: 주황
+        gradient.addColorStop(0.6, 'rgba(255, 50, 0, 0.7)'); // 빨강-주황
+        gradient.addColorStop(1, 'rgba(200, 0, 0, 0.4)'); // 가장자리: 어두운 빨강
+
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 외곽 링 (더 진하게)
+        ctx.strokeStyle = `rgba(255, 100, 0, ${alpha * 0.8})`;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // 펄스 효과 (애니메이션, 더 밝게)
+        const pulse = (Math.sin(Date.now() / 200) + 1) / 2; // 0~1
+        ctx.strokeStyle = `rgba(255, 200, 0, ${alpha * pulse})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y, radius * (0.7 + pulse * 0.3), 0, Math.PI * 2);
+        ctx.stroke();
 
         ctx.restore();
     }

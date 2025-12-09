@@ -155,7 +155,7 @@ class Tower {
 
     deactivateSkill() {
         this.skillActive = false;
-        if (this.skill.name.includes('Overdrive')) {
+        if (this.skill.name.includes('Overdrive') || this.skill.name.includes('Battle Rush')) {
             this.attackSpeed = this.originalAttackSpeed;
         }
     }
@@ -238,12 +238,11 @@ class Tower {
 
         // 스킬 데미지 보정
         if (this.skill) {
-            // Headshot (Sniper Mythic)
-            if (this.skill.name.includes('Headshot') && Math.random() < this.skill.chance) {
-                finalDamage *= this.skill.damageMult;
-                // 헤드샷 알림 (임시)
-                if (window.game) window.game.createHitParticles(target.x, target.y, '#FF0000');
+            // Armor Piercing (Sniper Mythic) - 30% 추가 피해
+            if (this.skill.name.includes('Armor Piercing')) {
+                finalDamage *= (1 + this.skill.bonusDamageMult);
             }
+
             // Executioner (Sniper Divine)
             if (this.skill.name.includes('Executioner') && (target.hp / target.maxHP) <= this.skill.hpThreshold) {
                 finalDamage *= this.skill.damageMult;
@@ -256,7 +255,7 @@ class Tower {
                 this.createSingleLightning(this, target);
                 this.applyDamageToTarget(target, finalDamage);
 
-                // Frozen Field (Splash Mythic)
+                // Frozen Field (Splash Mythic) - 기존 빙결 스킬
                 if (this.skill && this.skill.name.includes('Frozen Field') && Math.random() < this.skill.chance) {
                     if (target.applyStun && !target.isBoss) {
                         target.applyStun(this.skill.duration);
@@ -267,6 +266,12 @@ class Tower {
             else if (this.effect === 'sniper') {
                 this.createLaserEffect(this, target);
                 this.applyDamageToTarget(target, finalDamage);
+
+                // Expose Weakness (Sniper Legendary) - 약점 노출 디버프
+                if (this.skill && this.skill.name.includes('Expose Weakness')) {
+                    target.exposeWeaknessTimer = this.skill.duration;
+                    target.exposeWeaknessMult = this.skill.damageAmpMult;
+                }
             }
             // 일반 타워: 투사체 발사
             else {
@@ -283,6 +288,47 @@ class Tower {
 
             // 공격 후 발동 스킬
             if (this.skill) {
+                // Battle Rush (Standard Legendary) - 10% 확률로 공속 버프
+                if (this.skill.name.includes('Battle Rush') && Math.random() < this.skill.chance) {
+                    this.skillActive = true;
+                    this.skillTimer = this.skill.duration;
+                    this.attackSpeed = this.originalAttackSpeed / (1 + this.skill.speedBoost);
+                    if (window.game) window.game.createHitParticles(this.x, this.y, '#FFD700');
+                }
+
+                // Chain Attack (Standard Mythic) - 50% 확률로 즉시 재공격
+                if (this.skill.name.includes('Chain Attack') && Math.random() < this.skill.chance) {
+                    // 같은 대상에게 약간의 딜레이 후 한 번 더 공격 (따당 효과)
+                    const chainDamage = this.applyAccountStats(this.damage, target);
+
+                    setTimeout(() => {
+                        if (!window.game || !target.alive) return;
+
+                        if (this.effect === 'aoe') {
+                            this.createSingleLightning(this, target);
+                            this.applyDamageToTarget(target, chainDamage);
+                        } else if (this.effect === 'sniper') {
+                            this.createLaserEffect(this, target);
+                            this.applyDamageToTarget(target, chainDamage);
+                        } else {
+                            const projectile = new Projectile(
+                                this.x, this.y,
+                                target.x, target.y,
+                                chainDamage,
+                                '#FF6B6B' // 연쇄 공격은 빨간색
+                            );
+                            projectile.tower = this;
+                            projectile.target = target;
+                            window.game.projectiles.push(projectile);
+                        }
+                    }, 150); // 150ms 딜레이로 "따당" 효과
+                }
+
+                // Magma Pool (Splash Legendary) - 마그마 지대 생성
+                if (this.skill.name.includes('Magma Pool')) {
+                    this.createMagmaPool(target);
+                }
+
                 // Meteor (Splash Divine)
                 if (this.skill.name.includes('Meteor')) {
                     this.attackCount++;
@@ -291,7 +337,8 @@ class Tower {
                         this.attackCount = 0;
                     }
                 }
-                // Doppelganger (Standard Transcendent)
+
+                // Doppelganger (Standard Transcendent) - 분신 2마리
                 if (this.skill.name.includes('Doppelganger')) {
                     this.castDoppelgangerAttack(target);
                 }
@@ -322,7 +369,6 @@ class Tower {
 
             // 1. 화면 흔들림 및 폭발 이펙트
             if (window.game.renderer) {
-                window.game.renderer.shakeScreen(5, 0.3);
                 window.game.renderer.drawMeteor(target.x, target.y, radius);
             }
 
@@ -342,19 +388,73 @@ class Tower {
         window.game.projectiles.push(projectile);
     }
 
+    createMagmaPool(target) {
+        if (!window.game) return;
+
+        // 마그마 지대 생성
+        const magmaPool = {
+            x: target.x,
+            y: target.y,
+            radius: this.skill.radius,
+            damage: this.damage * this.skill.damageMult, // 매초 피해량
+            duration: this.skill.duration,
+            timer: this.skill.duration,
+            tower: this
+        };
+
+        // 게임에 마그마 풀 배열 추가
+        if (!window.game.magmaPools) {
+            window.game.magmaPools = [];
+        }
+        window.game.magmaPools.push(magmaPool);
+    }
+
+    castDivinePunishment() {
+        if (!window.game) return;
+
+        const monsters = window.game.monsterManager.getAliveMonsters();
+        const damage = this.applyAccountStats(this.damage, null);
+
+        // 모든 적에게 번개 공격
+        monsters.forEach(monster => {
+            // 번개 이펙트 생성
+            this.createSingleLightning(this, monster);
+
+            // 데미지 적용
+            const actualDmg = monster.takeDamage(damage);
+            if (window.game) window.game.damageDealt += actualDmg;
+        });
+
+        // 화면 흔들림 효과
+        if (window.game.renderer) {
+            window.game.renderer.shakeScreen(3, 0.2);
+        }
+    }
+
     castDoppelgangerAttack(target) {
         if (!window.game) return;
-        const damage = this.applyAccountStats(this.damage, target) * this.skill.cloneDamageMult;
 
-        const projectile = new Projectile(
-            this.x + 15, this.y - 15, // 약간 옆에서
-            target.x, target.y,
-            damage,
-            '#333333' // 그림자 색
-        );
-        projectile.tower = this;
-        projectile.target = target;
-        window.game.projectiles.push(projectile);
+        const cloneCount = this.skill.cloneCount || 1;
+        const damage = this.applyAccountStats(this.damage, target) * this.skill.cloneDamageMult;
+        const cloneOffset = 18; // 분신 위치 (drawStandardTower와 동일)
+
+        // 분신들을 각자의 위치에서 발사
+        for (let i = 0; i < cloneCount; i++) {
+            const side = i === 0 ? -1 : 1; // 왼쪽, 오른쪽
+            const cloneX = this.x + (side * cloneOffset);
+            const cloneY = this.y;
+            const alpha = 0.7 - (i * 0.15); // 투사체도 점점 투명
+
+            const projectile = new Projectile(
+                cloneX, cloneY, // 분신 위치에서 발사
+                target.x, target.y,
+                damage,
+                `rgba(96, 165, 250, ${alpha})` // 하늘색 (#60A5FA)
+            );
+            projectile.tower = this;
+            projectile.target = target;
+            window.game.projectiles.push(projectile);
+        }
     }
 
     createLaserEffect(from, to, isSuper = false) {
@@ -413,7 +513,16 @@ class Tower {
         if (!window.game) return;
 
         const radius = 250; // 범위 대폭 증가 (연쇄가 잘 되도록)
-        const maxChains = 8; // 최대 8번 연쇄
+
+        // Divine Punishment (Splash Mythic) - 30% 확률로 모든 적에게 연쇄
+        let maxChains = 8; // 기본 최대 8번 연쇄
+        let isDivinePunishment = false;
+
+        if (this.skill && this.skill.name.includes('Divine Punishment') && Math.random() < this.skill.chance) {
+            maxChains = 999; // 모든 적에게 연쇄
+            isDivinePunishment = true;
+        }
+
         const monsters = window.game.monsterManager.getAliveMonsters();
 
         // 이미 맞은 몬스터 추적
@@ -448,8 +557,8 @@ class Tower {
 
             if (!nearestMonster) break;
 
-            // 다음 타겟에게 데미지 (연쇄마다 15%씩 감소)
-            const chainDamage = damage * Math.pow(0.85, chainCount + 1);
+            // 다음 타겟에게 데미지 (감소 없이 100% 데미지)
+            const chainDamage = damage;
             nearestMonster.takeDamage(chainDamage);
 
             // 빙결 적용
@@ -468,6 +577,8 @@ class Tower {
             currentTarget = nearestMonster;
             chainCount++;
         }
+
+
 
         // 번개 이펙트 생성
         this.createChainLightning(chainTargets);
@@ -581,7 +692,46 @@ class Tower {
 
     // 일반 타워: 원형 기본형에 사각형 포신
     drawStandardTower(ctx, color, darkColor) {
-        // 베이스 (원형)
+        // Doppelganger 분신 그리기 (초월 등급)
+        if (this.skill && this.skill.name.includes('Doppelganger')) {
+            const cloneCount = this.skill.cloneCount || 1;
+            const cloneOffset = 18; // 본체로부터의 거리
+
+            for (let i = 0; i < cloneCount; i++) {
+                const side = i === 0 ? -1 : 1; // 왼쪽, 오른쪽
+                const cloneX = this.x + (side * cloneOffset);
+                const cloneY = this.y;
+                const alpha = 0.4 - (i * 0.1); // 점점 투명해짐
+
+                ctx.save();
+                ctx.globalAlpha = alpha;
+
+                // 분신 베이스 (원형)
+                const gradient = ctx.createRadialGradient(cloneX, cloneY, 0, cloneX, cloneY, 10);
+                gradient.addColorStop(0, '#666666');
+                gradient.addColorStop(1, '#333333');
+
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(cloneX, cloneY, 10, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 분신 테두리
+                ctx.strokeStyle = '#888888';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(cloneX, cloneY, 10, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // 분신 포신
+                ctx.fillStyle = '#999999';
+                ctx.fillRect(cloneX - 3, cloneY - 3, 6, 6);
+
+                ctx.restore();
+            }
+        }
+
+        // 본체 베이스 (원형)
         const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, 12);
         gradient.addColorStop(0, color);
         gradient.addColorStop(1, darkColor);

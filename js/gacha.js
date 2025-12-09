@@ -1,4 +1,4 @@
-// 가챠 시스템
+﻿// 가챠 시스템
 
 class GachaSystem {
     constructor() {
@@ -216,5 +216,140 @@ function initGachaUI() {
             }
         });
     });
+
+    // 타워 판매 버튼 추가
+    let gachaButtons = document.querySelector('.panel-section:nth-child(2)');
+    if (gachaButtons && !document.getElementById('tower-sell-btn')) {
+        const sellBtn = document.createElement('button');
+        sellBtn.id = 'tower-sell-btn';
+        sellBtn.className = 'btn-gacha btn-sell';
+        sellBtn.innerHTML = '<span>타워 판매</span>';
+        sellBtn.addEventListener('click', () => {
+            showTowerSellPanel();
+        });
+        gachaButtons.appendChild(sellBtn);
+    }
+
+    // 타워 판매 (FIFO)
+    function sellTower(towerType, rarity) {
+        if (!window.game || !window.game.gacha) return false;
+        const rarityData = CONFIG.RARITY[rarity];
+        if (!rarityData.sellPrice) {
+            showToast('레전드 이상 등급은 판매할 수 없습니다!', 'error');
+            return false;
+        }
+        const history = window.game.gacha.pullHistory;
+        const targetIndex = history.findIndex(item => item.tower === towerType && item.rarity === rarity && !item.sold);
+        if (targetIndex === -1) {
+            showToast('판매할 타워가 없습니다!', 'error');
+            return false;
+        }
+        history[targetIndex].sold = true;
+        const sellPrice = rarityData.sellPrice;
+        if (window.game && window.game.towerManager) removeTowerFromMap(towerType, rarity);
+        window.game.gold += sellPrice;
+        window.game.updateUI();
+        showToast(`${rarityData.name} ${CONFIG.TOWERS[towerType].name} 판매 (+${sellPrice}G)`, 'success');
+        updateTowerSellPanel();
+        return true;
+    }
+
+    // 맵에서 타워 제거
+    function removeTowerFromMap(towerType, rarity) {
+        if (!window.game || !window.game.towerManager) return;
+        const grid = window.game.towerManager.grid;
+        let foundTower = null, foundX = -1, foundY = -1;
+        outerLoop:
+        for (let y = 0; y < grid.length; y++) {
+            for (let x = 0; x < grid[y].length; x++) {
+                const cell = grid[y][x];
+                for (let i = 0; i < cell.length; i++) {
+                    const tower = cell[i];
+                    if (tower.towerKey === towerType && tower.rarity === rarity) {
+                        foundTower = tower; foundX = x; foundY = y;
+                        break outerLoop;
+                    }
+                }
+            }
+        }
+        if (foundTower) {
+            const cell = grid[foundY][foundX];
+            const index = cell.indexOf(foundTower);
+            if (index !== -1) {
+                cell.splice(index, 1);
+                cell.forEach((t, idx) => { t.slotIndex = idx; t.setPosition(true); });
+            }
+        }
+    }
+
+    // 판매 패널 표시
+    function showTowerSellPanel() {
+        const existingPanel = document.getElementById('sell-panel-overlay');
+        if (existingPanel) existingPanel.remove();
+        const overlay = document.createElement('div');
+        overlay.id = 'sell-panel-overlay';
+        overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); display: flex; justify-content: center; align-items: center; z-index: 1000;';
+        const panel = document.createElement('div');
+        panel.style.cssText = 'background: linear-gradient(135deg, #1F2937 0%, #111827 100%); border: 2px solid #F59E0B; border-radius: 12px; padding: 30px; max-width: 800px; max-height: 80vh; overflow-y: auto;';
+        const title = document.createElement('h2');
+        title.textContent = '타워 판매';
+        title.style.cssText = 'text-align: center; color: #FBBF24; margin-bottom: 20px;';
+        panel.appendChild(title);
+        const grid = document.createElement('div');
+        grid.id = 'sell-grid';
+        grid.style.cssText = 'display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;';
+        const towerTypes = ['STANDARD', 'SPLASH', 'SNIPER'];
+        const sellableRarities = ['COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'UNIQUE'];
+        sellableRarities.forEach(rarity => {
+            towerTypes.forEach(type => {
+                grid.appendChild(createSellButton(type, rarity));
+            });
+        });
+        panel.appendChild(grid);
+        const closeBtn = document.createElement('button');
+        closeBtn.textContent = '닫기';
+        closeBtn.style.cssText = 'width: 100%; padding: 12px; background: #EF4444; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer;';
+        closeBtn.addEventListener('click', () => overlay.remove());
+        panel.appendChild(closeBtn);
+        overlay.appendChild(panel);
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    }
+
+    // 판매 버튼 생성
+    function createSellButton(towerType, rarity) {
+        const btn = document.createElement('button');
+        const rarityData = CONFIG.RARITY[rarity];
+        const towerData = CONFIG.TOWERS[towerType];
+        const count = getTowerCount(towerType, rarity);
+        btn.style.cssText = `padding: 15px; background: ${count > 0 ? rarityData.color : '#374151'}; color: white; border: 2px solid ${count > 0 ? '#FFFFFF' : '#4B5563'}; border-radius: 8px; cursor: ${count > 0 ? 'pointer' : 'not-allowed'}; opacity: ${count > 0 ? '1' : '0.5'}; font-size: 14px; font-weight: bold; text-align: center; transition: transform 0.2s;`;
+        btn.innerHTML = `<div>${towerData.name.replace(' 타워', '')}</div><div style="font-size: 12px; margin: 5px 0;">${rarityData.name}</div><div style="font-size: 11px;">보유: ${count}개</div><div style="font-size: 13px; color: #FCD34D;">${rarityData.sellPrice}G</div>`;
+        if (count > 0) {
+            btn.addEventListener('click', () => sellTower(towerType, rarity));
+            btn.addEventListener('mouseenter', () => btn.style.transform = 'scale(1.05)');
+            btn.addEventListener('mouseleave', () => btn.style.transform = 'scale(1)');
+        }
+        return btn;
+    }
+
+    // 보유 개수 계산
+    function getTowerCount(towerType, rarity) {
+        if (!window.game || !window.game.gacha) return 0;
+        return window.game.gacha.pullHistory.filter(item => item.tower === towerType && item.rarity === rarity && !item.sold).length;
+    }
+
+    // 판매 패널 업데이트
+    function updateTowerSellPanel() {
+        const grid = document.getElementById('sell-grid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        const towerTypes = ['STANDARD', 'SPLASH', 'SNIPER'];
+        const sellableRarities = ['COMMON', 'UNCOMMON', 'RARE', 'EPIC', 'UNIQUE'];
+        sellableRarities.forEach(rarity => {
+            towerTypes.forEach(type => {
+                grid.appendChild(createSellButton(type, rarity));
+            });
+        });
+    }
 
 }

@@ -132,12 +132,114 @@ function showToast(message, type = 'success') {
 
     container.appendChild(toast);
 
+    // 최대 5개까지만 표시, 초과하면 가장 오래된 것 제거
+    const maxToasts = 5;
+    const toasts = container.querySelectorAll('.toast');
+    if (toasts.length > maxToasts) {
+        const oldestToast = toasts[0];
+        oldestToast.style.opacity = '0';
+        setTimeout(() => {
+            if (oldestToast.parentNode) {
+                container.removeChild(oldestToast);
+            }
+        }, 300);
+    }
+
     setTimeout(() => {
         toast.style.opacity = '0';
         setTimeout(() => {
-            container.removeChild(toast);
+            if (toast.parentNode) {
+                container.removeChild(toast);
+            }
         }, 300);
     }, 3000);
+}
+
+// 레전드 이상 등급 축하 효과
+function showLegendaryCelebration(towerName, rarityName, rarityKey, rarityColor) {
+    // 화면 중앙에 큰 축하 메시지 표시
+    const celebration = document.createElement('div');
+    celebration.className = 'legendary-celebration';
+    celebration.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10000;
+        text-align: center;
+        pointer-events: none;
+    `;
+
+    // 등급별 이모지와 효과
+    let emoji = '⭐';
+    let glowIntensity = '20px';
+    let scale = 'scale(1)';
+
+    if (rarityKey === 'LEGENDARY') {
+        emoji = '🌟';
+        glowIntensity = '25px';
+        scale = 'scale(1.1)';
+    } else if (rarityKey === 'MYTHIC') {
+        emoji = '✨';
+        glowIntensity = '30px';
+        scale = 'scale(1.2)';
+    } else if (rarityKey === 'DIVINE') {
+        emoji = '💫';
+        glowIntensity = '35px';
+        scale = 'scale(1.3)';
+    } else if (rarityKey === 'TRANSCENDENT') {
+        emoji = '🌠';
+        glowIntensity = '40px';
+        scale = 'scale(1.4)';
+    }
+
+    celebration.innerHTML = `
+        <div style="
+            font-size: 3em;
+            margin-bottom: 10px;
+            animation: celebrate-bounce 0.6s ease-out;
+        ">${emoji}</div>
+        <div style="
+            font-size: 2em;
+            font-weight: bold;
+            color: ${rarityColor};
+            text-shadow: 0 0 ${glowIntensity} ${rarityColor}, 0 0 ${glowIntensity} ${rarityColor};
+            margin-bottom: 10px;
+            animation: celebrate-glow 1.5s ease-in-out infinite;
+        ">${rarityName}</div>
+        <div style="
+            font-size: 1.5em;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            animation: celebrate-fade-in 0.8s ease-out;
+        ">${towerName}</div>
+    `;
+
+    document.body.appendChild(celebration);
+
+    // 애니메이션 후 제거
+    setTimeout(() => {
+        celebration.style.animation = 'celebrate-fade-out 0.5s ease-out forwards';
+        setTimeout(() => {
+            document.body.removeChild(celebration);
+        }, 500);
+    }, 3000);
+
+    // 배경 플래시 효과
+    const flash = document.createElement('div');
+    flash.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, ${rarityColor}33 0%, transparent 70%);
+        z-index: 9999;
+        pointer-events: none;
+        animation: celebrate-flash 0.5s ease-out;
+    `;
+    document.body.appendChild(flash);
+    setTimeout(() => document.body.removeChild(flash), 500);
 }
 
 // 로컬 스토리지 저장

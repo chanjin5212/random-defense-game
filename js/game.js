@@ -25,6 +25,7 @@ class Game {
         this.particles = [];
         this.lightningEffects = []; // 번개 이펙트
         this.beamEffects = []; // 레이저/빔 이펙트
+        this.magmaPools = []; // 마그마 지대
 
         // 아마겟돈(Global Shock) 상태
         this.globalShockTimer = 0;
@@ -155,6 +156,25 @@ class Game {
             if (this.towerManager.selectCell(gridX, gridY)) {
                 const count = this.towerManager.getCellTowerCount(gridX, gridY);
                 showToast(`칸 선택됨 (${count}/${CONFIG.GAME.TOWERS_PER_SLOT})`, 'success');
+
+                // 메뉴 패널 열기
+                const mobilePanel = document.getElementById('control-panel-mobile');
+                const toggleBtn = document.getElementById('panel-toggle-btn');
+
+                if (mobilePanel) {
+                    mobilePanel.classList.add('open');
+                    if (toggleBtn) toggleBtn.classList.add('open');
+
+                    // 패널 뷰를 'cell-view'로 전환 (타워 관리 화면)
+                    if (window.switchPanelView) {
+                        window.switchPanelView('cell-view');
+                    } else {
+                        // switchPanelView가 전역에 없다면 직접 DOM 조작
+                        document.querySelectorAll('.panel-view').forEach(v => v.classList.remove('active'));
+                        const cellView = document.getElementById('cell-view');
+                        if (cellView) cellView.classList.add('active');
+                    }
+                }
             }
         }
     }
@@ -308,6 +328,9 @@ class Game {
         // 아마겟돈(Global Shock) 업데이트
         this.updateGlobalShock(deltaTime);
 
+        // 마그마 풀 업데이트
+        this.updateMagmaPools(deltaTime);
+
         // DPS 계산
         this.updateDPS(deltaTime);
 
@@ -403,6 +426,30 @@ class Game {
                 this.globalShockTimer = 0;
             }
         }
+    }
+
+    // 마그마 풀 업데이트
+    updateMagmaPools(deltaTime) {
+        if (!this.magmaPools) return;
+
+        this.magmaPools.forEach(pool => {
+            pool.timer -= deltaTime;
+
+            // 매 프레임마다 범위 내 적에게 피해
+            const monsters = this.monsterManager.getAliveMonsters();
+            const damageThisFrame = pool.damage * deltaTime;
+
+            monsters.forEach(monster => {
+                const dist = Math.sqrt((pool.x - monster.x) ** 2 + (pool.y - monster.y) ** 2);
+                if (dist <= pool.radius) {
+                    const actualDmg = monster.takeDamage(damageThisFrame);
+                    this.damageDealt += actualDmg;
+                }
+            });
+        });
+
+        // 시간 종료된 마그마 풀 제거
+        this.magmaPools = this.magmaPools.filter(pool => pool.timer > 0);
     }
 
     updateDPS(deltaTime) {

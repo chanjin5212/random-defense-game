@@ -9,13 +9,10 @@
             return;
         }
 
-        // 초기 상태: 닫힘
-        let isOpen = false;
-
         toggleBtn.addEventListener('click', () => {
-            isOpen = !isOpen;
+            const isOpen = panel.classList.contains('open');
 
-            if (isOpen) {
+            if (!isOpen) {
                 panel.classList.add('open');
                 toggleBtn.classList.add('open');
             } else {

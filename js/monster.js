@@ -1,10 +1,24 @@
 // 몬스터 클래스
 
 class Monster {
-    constructor(round, isBoss = false, isMissionBoss = false) {
+    constructor(round, isBoss = false, isMissionBoss = false, monsterType = null) {
         this.round = round;
         this.isBoss = isBoss;
         this.isMissionBoss = isMissionBoss;
+
+        // 몬스터 타입 결정
+        if (!isBoss && !monsterType) {
+            const roundInCycle = ((round - 1) % 20) + 1;
+            const typeKey = CONFIG.ROUND_MONSTER_TYPE[roundInCycle] || 'NORMAL';
+            this.type = CONFIG.MONSTER_TYPES[typeKey];
+            this.typeKey = typeKey;
+        } else if (monsterType) {
+            this.type = CONFIG.MONSTER_TYPES[monsterType];
+            this.typeKey = monsterType;
+        } else {
+            this.type = null;
+            this.typeKey = null;
+        }
 
         // 기본 스탯
         if (isBoss) {
@@ -13,12 +27,24 @@ class Monster {
             this.defense = CONFIG.BOSS.DEFENSE;
             this.goldReward = getBossReward(round);
             this.abilities = getBossAbilities(round);
+            this.size = isMissionBoss ? 50 : 40;
         } else {
-            this.maxHP = calculateMonsterHP(round);
-            this.speed = calculateMonsterSpeed(round) * 100; // 100배 빠르게
-            this.defense = 0;
-            this.goldReward = calculateGoldDrop(round);
+            // 타입별 스탯 적용
+            const baseHP = calculateMonsterHP(round);
+            const baseSpeed = calculateMonsterSpeed(round);
+            const baseGold = calculateGoldDrop(round);
+
+            this.maxHP = baseHP * this.type.hpMult;
+            this.speed = baseSpeed * this.type.speedMult * 100;
+            this.defense = this.type.defense;
+            this.goldReward = baseGold * this.type.goldMult;
             this.abilities = [];
+            this.size = this.type.size;
+
+            // 재생형 설정
+            if (this.type.regenRate) {
+                this.regenRate = this.type.regenRate;
+            }
         }
 
         this.hp = this.maxHP;
@@ -48,7 +74,6 @@ class Monster {
 
         // 시각 효과
         this.hitFlash = 0;
-        this.size = isBoss ? 30 : 20;
 
         // 데미지 텍스트
         this.damageTexts = [];
@@ -148,6 +173,11 @@ class Monster {
             text.alpha = Math.max(0, text.life / text.maxLife);
         });
         this.damageTexts = this.damageTexts.filter(text => text.life > 0);
+
+        // Expose Weakness 디버프 타이머
+        if (this.exposeWeaknessTimer && this.exposeWeaknessTimer > 0) {
+            this.exposeWeaknessTimer -= deltaTime;
+        }
     }
 
     createDamageText(damage) {
@@ -164,6 +194,11 @@ class Monster {
     }
 
     applyDoTDamage(deltaTime) {
+        // 재생형 회복
+        if (this.regenRate && this.hp < this.maxHP) {
+            this.hp = Math.min(this.hp + (this.maxHP * this.regenRate * deltaTime), this.maxHP);
+        }
+
         // 화염 DoT
         if (this.statusEffects.fireDot.active) {
             this.takeDamage(this.statusEffects.fireDot.damage * deltaTime);
@@ -210,6 +245,11 @@ class Monster {
 
     takeDamage(damage) {
         if (!this.alive) return 0;
+
+        // Expose Weakness 디버프 적용
+        if (this.exposeWeaknessTimer && this.exposeWeaknessTimer > 0) {
+            damage *= this.exposeWeaknessMult;
+        }
 
         // 방어력 적용
         let actualDamage = damage * (1 - this.defense);
@@ -312,92 +352,10 @@ class Monster {
 
         // 보스는 더 크고 화려하게
         if (this.isBoss) {
-            // 보스 외곽선
-            ctx.strokeStyle = '#FFD700';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size + 5, 0, Math.PI * 2);
-            ctx.stroke();
-
-            // 보스 본체
-            const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
-            gradient.addColorStop(0, '#FF4444');
-            gradient.addColorStop(1, '#AA0000');
-            ctx.fillStyle = gradient;
+            this.drawBoss(ctx);
         } else {
-            // 일반 몬스터
-            ctx.fillStyle = '#EF4444';
-        }
-
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fill();
-
-        // 실드 표시
-        if (this.isBoss && this.shieldActive) {
-            ctx.strokeStyle = '#3B82F6';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([5, 5]);
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size + 8, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.setLineDash([]);
-        }
-
-        // 상태 효과 표시
-        if (this.statusEffects.stun.active) {
-            ctx.fillStyle = '#FFFF00';
-            ctx.font = 'bold 20px Arial';
-            ctx.fillText('★', this.x - 8, this.y - this.size - 10);
-        }
-
-        // 빙결 이펙트 (불규칙한 얼음 결정)
-        if (this.statusEffects.freeze.active && this.iceVertices) {
-            ctx.save();
-            ctx.translate(this.x, this.y);
-
-            // 1. 얼음 본체 (날카로운 다각형)
-            ctx.beginPath();
-            this.iceVertices.forEach((v, i) => {
-                if (i === 0) ctx.moveTo(v.x, v.y);
-                else ctx.lineTo(v.x, v.y);
-            });
-            ctx.closePath();
-
-            // 그라데이션 채우기 (입체감)
-            const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size * 2);
-            grad.addColorStop(0, 'rgba(200, 240, 255, 0.4)');
-            grad.addColorStop(1, 'rgba(100, 200, 255, 0.7)');
-            ctx.fillStyle = grad;
-            ctx.fill();
-
-            // 2. 얼음 테두리 (날카롭게)
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-            ctx.lineWidth = 2;
-            ctx.lineJoin = 'miter'; // 뾰족한 모서리
-            ctx.stroke();
-
-            // 3. 내부 크랙 (얼음 갈라진 느낌)
-            ctx.beginPath();
-            ctx.moveTo(this.iceVertices[0].x * 0.5, this.iceVertices[0].y * 0.5);
-            ctx.lineTo(this.iceVertices[4].x * 0.5, this.iceVertices[4].y * 0.5);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-            ctx.lineWidth = 1;
-            ctx.stroke();
-
-            ctx.restore();
-        }
-
-        if (this.statusEffects.fireDot.active) {
-            ctx.fillStyle = '#FF6600';
-            ctx.font = 'bold 16px Arial';
-            ctx.fillText('🔥', this.x + this.size - 10, this.y - this.size);
-        }
-
-        if (this.statusEffects.poisonDot.active) {
-            ctx.fillStyle = '#00FF00';
-            ctx.font = 'bold 16px Arial';
-            ctx.fillText('☠', this.x - this.size, this.y - this.size);
+            // 타입별 몬스터 그리기
+            this.drawMonsterByType(ctx);
         }
 
         ctx.restore();
@@ -407,6 +365,219 @@ class Monster {
 
         // 데미지 텍스트 렌더링
         this.drawDamageTexts(ctx);
+    }
+
+    drawBoss(ctx) {
+        if (this.isMissionBoss) {
+            // 미션 보스: 검은색 + 보라색 오라
+            ctx.strokeStyle = '#9333EA';
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 30;
+            ctx.shadowColor = '#9333EA';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size + 8, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // 본체 (검은색)
+            const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
+            gradient.addColorStop(0, '#1F2937');
+            gradient.addColorStop(1, '#000000');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 해골 마크
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('☠', this.x, this.y);
+        } else {
+            // 일반 보스: 붉은색 별 + 금색 왕관
+            // 금색 외곽선
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = '#FFD700';
+
+            // 별 모양 그리기
+            ctx.fillStyle = '#DC2626';
+            ctx.beginPath();
+            for (let i = 0; i < 5; i++) {
+                const angle = (Math.PI * 2 * i) / 5 - Math.PI / 2;
+                const x = this.x + Math.cos(angle) * this.size;
+                const y = this.y + Math.sin(angle) * this.size;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+
+                const innerAngle = angle + Math.PI / 5;
+                const innerX = this.x + Math.cos(innerAngle) * (this.size * 0.4);
+                const innerY = this.y + Math.sin(innerAngle) * (this.size * 0.4);
+                ctx.lineTo(innerX, innerY);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // 왕관
+            ctx.fillStyle = '#FFD700';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('👑', this.x, this.y - this.size - 10);
+        }
+
+        // 실드 표시
+        if (this.shieldActive) {
+            ctx.strokeStyle = '#3B82F6';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size + 8, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+    }
+
+    drawMonsterByType(ctx) {
+        ctx.fillStyle = this.type.color;
+
+        switch (this.type.shape) {
+            case 'circle':
+                // 원형 (일반형, 재생형)
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 재생형 펄스 효과
+                if (this.regenRate) {
+                    const pulse = (Math.sin(Date.now() / 300) + 1) / 2;
+                    ctx.strokeStyle = `rgba(132, 204, 22, ${pulse})`;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size + 5, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                break;
+
+            case 'triangle':
+                // 삼각형 (빠른형)
+                ctx.beginPath();
+                for (let i = 0; i < 3; i++) {
+                    const angle = (Math.PI * 2 * i) / 3 - Math.PI / 2;
+                    const x = this.x + Math.cos(angle) * this.size;
+                    const y = this.y + Math.sin(angle) * this.size;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.fill();
+
+                // 잔상 효과
+                ctx.globalAlpha = 0.3;
+                ctx.beginPath();
+                for (let i = 0; i < 3; i++) {
+                    const angle = (Math.PI * 2 * i) / 3 - Math.PI / 2;
+                    const x = this.x - 5 + Math.cos(angle) * this.size;
+                    const y = this.y + Math.sin(angle) * this.size;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+                break;
+
+            case 'hexagon':
+                // 육각형 (중장갑형)
+                ctx.beginPath();
+                for (let i = 0; i < 6; i++) {
+                    const angle = (Math.PI * 2 * i) / 6;
+                    const x = this.x + Math.cos(angle) * this.size;
+                    const y = this.y + Math.sin(angle) * this.size;
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.closePath();
+                ctx.fill();
+
+                // 금속 테두리
+                ctx.strokeStyle = '#D97706';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                break;
+
+            case 'square':
+                // 사각형 (탱크형)
+                ctx.fillRect(
+                    this.x - this.size,
+                    this.y - this.size,
+                    this.size * 2,
+                    this.size * 2
+                );
+
+                // 테두리
+                ctx.strokeStyle = '#7F1D1D';
+                ctx.lineWidth = 3;
+                ctx.strokeRect(
+                    this.x - this.size,
+                    this.y - this.size,
+                    this.size * 2,
+                    this.size * 2
+                );
+                break;
+        }
+
+        // 상태 효과 표시
+        if (this.statusEffects.stun.active) {
+            ctx.fillStyle = '#FFFF00';
+            ctx.font = 'bold 20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('★', this.x, this.y - this.size - 10);
+        }
+
+        // 빙결 이펙트
+        if (this.statusEffects.freeze.active && this.iceVertices) {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+
+            ctx.beginPath();
+            this.iceVertices.forEach((v, i) => {
+                if (i === 0) ctx.moveTo(v.x, v.y);
+                else ctx.lineTo(v.x, v.y);
+            });
+            ctx.closePath();
+
+            const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size * 2);
+            grad.addColorStop(0, 'rgba(200, 240, 255, 0.4)');
+            grad.addColorStop(1, 'rgba(100, 200, 255, 0.7)');
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        if (this.statusEffects.fireDot.active) {
+            ctx.fillStyle = '#FF6600';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🔥', this.x + this.size, this.y - this.size);
+        }
+
+        if (this.statusEffects.poisonDot.active) {
+            ctx.fillStyle = '#00FF00';
+            ctx.font = 'bold 16px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('☠', this.x - this.size, this.y - this.size);
+        }
     }
 
     drawDamageTexts(ctx) {

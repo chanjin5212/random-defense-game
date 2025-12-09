@@ -221,6 +221,18 @@ function handleAdminSpawn() {
     if (addResult.success) {
         const rarityData = CONFIG.RARITY[selectedRarity];
         const towerData = CONFIG.TOWERS[selectedTower];
+
+        // 레전드 이상이면 축하 효과 표시
+        const legendaryRarities = ['LEGENDARY', 'MYTHIC', 'DIVINE', 'TRANSCENDENT'];
+        if (legendaryRarities.includes(selectedRarity)) {
+            showLegendaryCelebration(
+                towerData.name,
+                rarityData.name,
+                selectedRarity,
+                rarityData.color
+            );
+        }
+
         showToast(`🔧 ${rarityData.name} ${towerData.name} 소환 완료!`, 'success');
     } else {
         showToast(addResult.reason, 'error');

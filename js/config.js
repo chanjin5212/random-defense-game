@@ -24,15 +24,15 @@ const CONFIG = {
 
     // 등급 시스템
     RARITY: {
-        COMMON: { name: '일반', multiplier: 1.0, color: '#94A3B8', probability: 0.60, sellPrice: 5 },
-        UNCOMMON: { name: '희귀', multiplier: 1.5, color: '#22C55E', probability: 0.25, sellPrice: 15 },
-        RARE: { name: '레어', multiplier: 3.0, color: '#3B82F6', probability: 0.10, sellPrice: 40 },
-        EPIC: { name: '에픽', multiplier: 10.0, color: '#A855F7', probability: 0.04, sellPrice: 100 },
-        UNIQUE: { name: '유니크', multiplier: 50.0, color: '#E879F9', probability: 0.008, sellPrice: 250 },
-        LEGENDARY: { name: '레전드', multiplier: 200.0, color: '#F43F5E', probability: 0.0019, sellPrice: 800 },
-        MYTHIC: { name: '미스틱', multiplier: 500.0, color: '#F59E0B', probability: 0.00008, sellPrice: 2000 },
-        DIVINE: { name: '신화', multiplier: 1500.0, color: '#FBBF24', probability: 0.000019, sellPrice: 5000 },
-        TRANSCENDENT: { name: '초월', multiplier: 5000.0, color: '#06B6D4', probability: 0.000001, sellPrice: 10000 }
+        COMMON: { name: '일반', multiplier: 1.0, color: '#94A3B8', probability: 0.50, sellPrice: 5 },
+        UNCOMMON: { name: '희귀', multiplier: 1.5, color: '#22C55E', probability: 0.331, sellPrice: 8 },
+        RARE: { name: '레어', multiplier: 3.0, color: '#3B82F6', probability: 0.102, sellPrice: 20 },
+        EPIC: { name: '에픽', multiplier: 10.0, color: '#A855F7', probability: 0.051, sellPrice: 50 },
+        UNIQUE: { name: '유니크', multiplier: 50.0, color: '#E879F9', probability: 0.008, sellPrice: 100 },
+        LEGENDARY: { name: '레전드', multiplier: 200.0, color: '#F43F5E', probability: 0.005, sellPrice: null }, // 판매 불가
+        MYTHIC: { name: '미스틱', multiplier: 500.0, color: '#F59E0B', probability: 0.002, sellPrice: null }, // 판매 불가
+        DIVINE: { name: '신화', multiplier: 1500.0, color: '#FBBF24', probability: 0.0008, sellPrice: null }, // 판매 불가
+        TRANSCENDENT: { name: '초월', multiplier: 5000.0, color: '#06B6D4', probability: 0.00019, sellPrice: null } // 판매 불가
     },
 
     // 타워 정의 (3종류)
@@ -80,9 +80,74 @@ const CONFIG = {
         GOLD_SCALING: 15 // 1 + (round/15)
     },
 
+    // 몬스터 타입
+    MONSTER_TYPES: {
+        NORMAL: {
+            name: '일반형',
+            hpMult: 1.0,
+            speedMult: 1.0,
+            defense: 0,
+            goldMult: 1.0,
+            color: '#94A3B8', // 회색
+            shape: 'circle',
+            size: 20
+        },
+        SWIFT: {
+            name: '빠른형',
+            hpMult: 0.5,
+            speedMult: 2.0,
+            defense: 0,
+            goldMult: 0.8,
+            color: '#10B981', // 초록색
+            shape: 'triangle',
+            size: 18
+        },
+        ARMORED: {
+            name: '중장갑형',
+            hpMult: 0.8,
+            speedMult: 0.6,
+            defense: 0.5,
+            goldMult: 1.5,
+            color: '#92400E', // 갈색
+            shape: 'hexagon',
+            size: 22
+        },
+        TANK: {
+            name: '탱크형',
+            hpMult: 3.0,
+            speedMult: 0.4,
+            defense: 0,
+            goldMult: 2.0,
+            color: '#991B1B', // 진한 빨강
+            shape: 'square',
+            size: 28
+        },
+        REGENERATOR: {
+            name: '재생형',
+            hpMult: 1.5,
+            speedMult: 0.8,
+            defense: 0,
+            goldMult: 1.8,
+            regenRate: 0.02, // 초당 2% 재생
+            color: '#84CC16', // 연두색
+            shape: 'circle',
+            size: 22
+        }
+    },
+
+    // 라운드별 몬스터 타입 (20라운드 사이클)
+    ROUND_MONSTER_TYPE: {
+        1: 'NORMAL', 2: 'NORMAL', 3: 'NORMAL', 4: 'SWIFT',
+        5: 'NORMAL', 6: 'ARMORED', 7: 'NORMAL', 8: 'SWIFT',
+        9: 'NORMAL', 10: 'TANK', 11: 'NORMAL', 12: 'SWIFT',
+        13: 'NORMAL', 14: 'ARMORED', 15: 'NORMAL', 16: 'SWIFT',
+        17: 'NORMAL', 18: 'REGENERATOR', 19: 'NORMAL'
+        // 20은 보스
+    },
+
     // 보스 설정
     BOSS: {
-        INTERVAL: 25, // 25라운드마다 보스 등장
+        INTERVAL: 20, // 20라운드마다 보스 등장
         BASE_HP: 10000,
         HP_SCALING: 1.15, // BossHP = 10000 × (1.15 ^ (boss_round-1))
         DEFENSE: 0.3, // 30% 방어막
@@ -92,10 +157,10 @@ const CONFIG = {
             DEFAULT: 1000
         },
         ABILITIES: {
-            25: ['regen'], // 체력 재생 1%/초
-            50: ['shield'], // 실드 (피해 50% 감소, 5초 간격)
-            75: ['split'], // 분열 (죽을 때 2마리 스폰)
-            100: ['regen', 'shield', 'split'] // 모든 능력
+            20: ['regen'], // 체력 재생 1%/초
+            40: ['shield'], // 실드 (피해 50% 감소, 5초 간격)
+            60: ['regen', 'shield'], // 재생 + 실드
+            80: ['regen', 'shield', 'split'] // 모든 능력
         }
     },
 
@@ -174,12 +239,20 @@ const CONFIG = {
     TOWER_SKILLS: {
         // 스플래시 타워
         SPLASH: {
+            LEGENDARY: {
+                name: 'Magma Pool (마그마 지대)',
+                type: 'ground',
+                duration: 4.0, // 4초 지속
+                damageMult: 0.4, // 매초 공격력의 40%
+                radius: 40, // 마그마 범위
+                description: '공격한 적의 위치에 4초 동안 마그마 지대 생성 (매초 40% 피해)'
+            },
             MYTHIC: {
-                name: 'Frozen Field (빙결 지대)',
+                name: 'Divine Punishment (천벌)',
                 type: 'chance',
-                chance: 0.15, // 15%
-                duration: 1.5, // 1.5초 빙결
-                description: '공격 시 15% 확률로 적을 1.5초간 빙결'
+                chance: 0.30, // 30% 확률
+                damageMult: 1.0, // 100% 피해
+                description: '공격 시 30% 확률로 맵의 모든 적에게 번개 낙하'
             },
             DIVINE: {
                 name: 'Absolute Zero (절대 영도)',
@@ -198,12 +271,18 @@ const CONFIG = {
         },
         // 저격 타워
         SNIPER: {
+            LEGENDARY: {
+                name: 'Expose Weakness (약점 노출)',
+                type: 'debuff',
+                duration: 5.0, // 5초 지속
+                damageAmpMult: 1.2, // 받는 피해 20% 증가
+                description: '공격당한 적은 5초 동안 받는 모든 피해 20% 증가'
+            },
             MYTHIC: {
-                name: 'Headshot (헤드샷)',
-                type: 'chance',
-                chance: 0.10, // 10%
-                damageMult: 5.0, // 5배 데미지
-                description: '10% 확률로 5배의 치명타 피해'
+                name: 'Armor Piercing (관통 사격)',
+                type: 'passive',
+                bonusDamageMult: 0.3, // 30% 추가 피해
+                description: '방어력을 무시하고 30% 추가 피해'
             },
             DIVINE: {
                 name: 'Executioner (처형인)',
@@ -222,11 +301,19 @@ const CONFIG = {
         },
         // 일반 타워
         STANDARD: {
+            LEGENDARY: {
+                name: 'Battle Rush (전투 흥분)',
+                type: 'chance',
+                chance: 0.10, // 10% 확률
+                duration: 5.0, // 5초 지속
+                speedBoost: 0.5, // 공격 속도 50% 증가
+                description: '공격 시 10% 확률로 5초 동안 공격 속도 50% 증가'
+            },
             MYTHIC: {
-                name: 'Multi-Shot (멀티샷)',
-                type: 'passive',
-                targetCount: 3, // 3마리 동시 공격
-                description: '한 번에 3발의 투사체 발사'
+                name: 'Chain Attack (연쇄 공격)',
+                type: 'chance',
+                chance: 0.50, // 50% 확률
+                description: '공격 시 50% 확률로 즉시 한 번 더 공격'
             },
             DIVINE: {
                 name: "Commander's Aura (지휘관의 오라)",
@@ -238,8 +325,9 @@ const CONFIG = {
             TRANSCENDENT: {
                 name: 'Doppelganger (도플갱어)',
                 type: 'passive',
-                cloneDamageMult: 0.5, // 본체의 50% 데미지 추가 타격
-                description: '매 공격마다 그림자 분신이 함께 공격 (50% 피해)'
+                cloneCount: 2, // 분신 2마리
+                cloneDamageMult: 1.0, // 각 분신이 100% 데미지
+                description: '매 공격마다 그림자 분신 2마리가 함께 공격 (각각 100% 피해)'
             }
         }
     },
