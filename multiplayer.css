@@ -1,0 +1,312 @@
+/* 멀티플레이 알림 */
+#multiplayer-notification-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10000;
+    pointer-events: none;
+}
+
+.multiplayer-notification {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+    border: 2px solid #FFD700;
+    border-radius: 12px;
+    padding: 20px 30px;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.3s ease;
+    pointer-events: auto;
+}
+
+.multiplayer-notification.show {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.multiplayer-notification.hide {
+    opacity: 0;
+    transform: scale(0.8) translateY(-20px);
+}
+
+.notification-icon {
+    font-size: 2.5em;
+    animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+.notification-content {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.notification-player {
+    font-size: 0.9em;
+    color: #A0AEC0;
+}
+
+.notification-tower {
+    font-size: 1.3em;
+    font-weight: bold;
+}
+
+.notification-text {
+    font-size: 0.85em;
+    color: #CBD5E0;
+}
+
+/* 멀티플레이 로비 화면 */
+#multiplayer-lobby-screen {
+    display: none;
+}
+
+#multiplayer-lobby-screen.active {
+    display: flex;
+}
+
+.multiplayer-lobby-container {
+    max-width: 500px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.lobby-mode-title {
+    text-align: center;
+    font-size: 2em;
+    margin-bottom: 30px;
+    background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.lobby-input-group {
+    margin-bottom: 20px;
+}
+
+.lobby-input-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #CBD5E0;
+    font-size: 0.9em;
+}
+
+.lobby-input-group input {
+    width: 100%;
+    padding: 12px;
+    background: #2D3748;
+    border: 2px solid #4A5568;
+    border-radius: 8px;
+    color: white;
+    font-size: 1em;
+    transition: border-color 0.3s;
+}
+
+.lobby-input-group input:focus {
+    outline: none;
+    border-color: #667EEA;
+}
+
+.lobby-divider {
+    text-align: center;
+    margin: 30px 0;
+    color: #718096;
+    position: relative;
+}
+
+.lobby-divider::before,
+.lobby-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: #4A5568;
+}
+
+.lobby-divider::before {
+    left: 0;
+}
+
+.lobby-divider::after {
+    right: 0;
+}
+
+/* 대기실 화면 */
+#waiting-room-screen {
+    display: none;
+}
+
+#waiting-room-screen.active {
+    display: flex;
+}
+
+.waiting-room-container {
+    max-width: 600px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.room-code-display-container {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);
+    border-radius: 12px;
+}
+
+.room-code-label {
+    font-size: 0.9em;
+    color: #E2E8F0;
+    margin-bottom: 8px;
+}
+
+.room-code-value {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: white;
+    letter-spacing: 0.1em;
+    font-family: 'Courier New', monospace;
+}
+
+.player-list-container {
+    margin-bottom: 30px;
+}
+
+.player-list-title {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    color: #E2E8F0;
+}
+
+.player-card {
+    background: #2D3748;
+    border: 2px solid #4A5568;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.player-name {
+    font-size: 1.1em;
+    color: white;
+}
+
+.host-badge {
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    margin-left: 10px;
+}
+
+.player-status {
+    color: #10B981;
+    font-size: 0.9em;
+}
+
+/* 다른 플레이어 필드 뷰어 */
+#other-players-fields {
+    position: fixed;
+    bottom: 80px;
+    right: 10px;
+    max-width: 200px;
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+.other-player-field {
+    background: rgba(26, 26, 26, 0.9);
+    border: 2px solid #4A5568;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+    backdrop-filter: blur(10px);
+}
+
+.player-field-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #4A5568;
+}
+
+.player-field-name {
+    font-weight: bold;
+    color: #E2E8F0;
+    font-size: 0.9em;
+}
+
+.player-field-round {
+    color: #10B981;
+    font-size: 0.85em;
+}
+
+.player-field-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8em;
+    color: #CBD5E0;
+}
+
+/* 연결 상태 표시 */
+#connection-status {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 8px 12px;
+    background: rgba(26, 26, 26, 0.9);
+    border-radius: 8px;
+    font-size: 0.85em;
+    z-index: 1000;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .multiplayer-notification {
+        max-width: 90%;
+        padding: 15px 20px;
+    }
+
+    .notification-icon {
+        font-size: 2em;
+    }
+
+    .notification-tower {
+        font-size: 1.1em;
+    }
+
+    #other-players-fields {
+        bottom: 60px;
+        right: 5px;
+        max-width: 150px;
+    }
+
+    .room-code-value {
+        font-size: 2em;
+    }
+}

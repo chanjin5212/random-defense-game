@@ -260,6 +260,11 @@ class Game {
             this.startRound();
         }
 
+        // 멀티플레이 모드면 상태 동기화 시작
+        if (window.isMultiplayerMode && typeof startGameStateSync === 'function') {
+            startGameStateSync();
+        }
+
         this.gameLoop();
     }
 
@@ -292,6 +297,12 @@ class Game {
     // ...
 
     toggleGameSpeed() {
+        // 멀티플레이 모드에서 방장이 아니면 속도 변경 불가
+        if (window.isMultiplayerMode && !window.isRoomHost) {
+            showToast('방장만 속도를 변경할 수 있습니다.', 'error');
+            return;
+        }
+
         if (!this.gameSpeed) this.gameSpeed = 1;
 
         if (this.gameSpeed === 1) this.gameSpeed = 2;
@@ -301,6 +312,13 @@ class Game {
         // UI 업데이트
         const btn = document.getElementById('game-speed-display');
         if (btn) btn.textContent = `x${this.gameSpeed}`;
+
+        // 멀티플레이 모드면 서버로 속도 변경 전송
+        if (window.isMultiplayerMode && window.multiplayerRoomCode) {
+            if (typeof sendSpeedChange === 'function') {
+                sendSpeedChange(this.gameSpeed);
+            }
+        }
     }
 
     // ...
@@ -509,6 +527,8 @@ class Game {
     }
 
     createHitParticles(x, y, color) {
+        return; // 사용자 요청으로 파티클 효과 제거 (포탄 튀는 효과)
+
         // 그래픽 설정 확인
         const quality = CONFIG.GRAPHICS.PARTICLE_QUALITY;
         if (quality === 'off') return;
@@ -587,6 +607,15 @@ class Game {
     gameOver() {
         this.state = 'gameover';
 
+        // 멀티플레이 모드면 서버에 알림
+        if (window.isMultiplayerMode && typeof notifyGameOver === 'function') {
+            notifyGameOver(this.totalGoldEarned || 0, this.currentRound);
+            // 동기화 중지
+            if (typeof stopGameStateSync === 'function') {
+                stopGameStateSync();
+            }
+        }
+
         // 게임 종료 시 즉시 저장소 비우기 (유저 요청)
         try {
             localStorage.clear();
@@ -604,24 +633,14 @@ class Game {
 window.game = null;
 window.economy = null;
 window.upgradeManager = null;
-window.battlePass = null;
-window.achievementManager = null;
 window.towerUpgradeManager = null;
 
 // 초기화
 window.addEventListener('load', () => {
     // 매니저들 초기화
     window.economy = new EconomyManager();
-    // window.economy.load();
 
     window.upgradeManager = new UpgradeManager();
-    // window.upgradeManager.load();
-
-    window.battlePass = new BattlePassManager();
-    // window.battlePass.load();
-
-    window.achievementManager = new AchievementManager();
-    // window.achievementManager.load();
 
     window.towerUpgradeManager = new TowerUpgradeManager();
 

@@ -379,13 +379,13 @@ class Projectile {
             ctx.lineWidth = isArmageddon ? 5 : 3;
             ctx.stroke();
         } else {
-            // 일반 투사체 - 시각 효과 제거 (보이지 않음)
-            // ctx.fillStyle = this.color;
-            // ctx.shadowBlur = 10;
-            // ctx.shadowColor = this.color;
-            // ctx.beginPath();
-            // ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            // ctx.fill();
+            // 일반 투사체
+            ctx.fillStyle = this.color;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
         }
 
         ctx.restore();

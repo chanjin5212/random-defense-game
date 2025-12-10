@@ -1,7 +1,86 @@
 // UI 관리 (간소화 버전)
 
 function initUI() {
-    document.getElementById('start-game-btn').addEventListener('click', startGame);
+    // 기존 싱글 모드 버튼 (호환성 유지)
+    const startGameBtn = document.getElementById('start-game-btn');
+    if (startGameBtn) {
+        startGameBtn.addEventListener('click', startGame);
+    }
+
+    // 싱글 모드 버튼 (새로운)
+    const singleModeBtn = document.getElementById('single-mode-btn');
+    if (singleModeBtn) {
+        singleModeBtn.addEventListener('click', startGame);
+    }
+
+    // 멀티 모드 버튼
+    const multiModeBtn = document.getElementById('multi-mode-btn');
+    if (multiModeBtn) {
+        multiModeBtn.addEventListener('click', () => {
+            if (typeof initializeSocket === 'function') {
+                initializeSocket();
+            }
+            showScreen('multiplayer-lobby-screen');
+        });
+    }
+
+    // 멀티플레이 로비 버튼들
+    const createRoomBtn = document.getElementById('create-room-btn');
+    if (createRoomBtn) {
+        createRoomBtn.addEventListener('click', () => {
+            const playerName = document.getElementById('player-name-input').value.trim();
+            if (!playerName) {
+                showToast('이름을 입력해주세요', 'error');
+                return;
+            }
+            if (typeof createMultiplayerRoom === 'function') {
+                createMultiplayerRoom(playerName);
+            }
+        });
+    }
+
+    const joinRoomBtn = document.getElementById('join-room-btn');
+    if (joinRoomBtn) {
+        joinRoomBtn.addEventListener('click', () => {
+            const playerName = document.getElementById('player-name-input').value.trim();
+            const roomCode = document.getElementById('room-code-input').value.trim();
+            if (!playerName || !roomCode) {
+                showToast('이름과 방 코드를 입력해주세요', 'error');
+                return;
+            }
+            if (typeof joinMultiplayerRoom === 'function') {
+                joinMultiplayerRoom(roomCode, playerName);
+            }
+        });
+    }
+
+    const backToLobbyBtn = document.getElementById('back-to-lobby-btn');
+    if (backToLobbyBtn) {
+        backToLobbyBtn.addEventListener('click', () => {
+            showScreen('lobby-screen');
+        });
+    }
+
+    const leaveRoomBtn = document.getElementById('leave-room-btn');
+    if (leaveRoomBtn) {
+        leaveRoomBtn.addEventListener('click', () => {
+            if (typeof leaveMultiplayerRoom === 'function') {
+                leaveMultiplayerRoom();
+            }
+        });
+    }
+
+    const startMultiGameBtn = document.getElementById('start-multiplayer-game-btn');
+    if (startMultiGameBtn) {
+        startMultiGameBtn.addEventListener('click', () => {
+            if (typeof startMultiplayerGame === 'function') {
+                startMultiplayerGame();
+            }
+        });
+    }
+
+    // 멀티플레이 리스너는 socket-client.js의 connect 이벤트에서 자동 설정됨
+
     document.getElementById('restart-btn').addEventListener('click', restartGame);
     document.getElementById('lobby-btn').addEventListener('click', () => location.reload());
     document.getElementById('mission-boss-btn').addEventListener('click', spawnMissionBoss);
@@ -29,8 +108,6 @@ function initUI() {
 
     initGachaUI();
     initUpgradeUI();
-    initBattlePassUI();
-    initAchievementUI();
     updateLobbyUI();
 }
 
@@ -316,3 +393,6 @@ function toggleGraphicsQuality() {
 
     showToast(`그래픽 설정: ${CONFIG.GRAPHICS.PARTICLE_QUALITY.toUpperCase()}`, 'info');
 }
+
+// 전역 함수 노출 (멀티플레이에서 사용)
+window.showScreen = showScreen;

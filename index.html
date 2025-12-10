@@ -7,6 +7,7 @@
     <title>★ 랜덤 디펜스 (모바일) ★</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="multiplayer.css">
 </head>
 
 <body>
@@ -15,33 +16,13 @@
         <div class="lobby-container">
             <h1 class="game-title">★ 랜덤 디펜스 ★</h1>
 
-            <div class="player-info" style="display: none;">
-                <!-- 삭제됨 -->
-            </div>
 
-            <!-- <div class="battlepass-preview">
-                <div class="battlepass-header">
-                    <span>배틀패스</span>
-                    <span id="battlepass-progress">0/30</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="battlepass-fill" style="width: 0%"></div>
-                </div>
-            </div> -->
-
-            <button class="btn btn-primary btn-large" id="start-game-btn">게임 시작</button>
+            <button class="btn btn-primary btn-large" id="single-mode-btn">🎮 싱글 모드</button>
+            <button class="btn btn-primary btn-large" id="multi-mode-btn"
+                style="margin-top: 10px; background: linear-gradient(135deg, #667EEA 0%, #764BA2 100%);">👥 멀티
+                모드</button>
             <button class="btn btn-secondary" id="open-ranking-btn" style="margin-top: 10px; width: 100%;">🏆 랭킹
                 보기</button>
-
-            <!-- 관리자 모드 버튼 삭제됨 -->
-            <!-- <button class="btn btn-danger" id="admin-start-btn" style="margin-top: 10px; opacity: 0.7;">🔧 관리자 게임 시작</button> -->
-
-            <!-- 로비 버튼 삭제됨 -->
-            <!-- <div class="lobby-buttons">
-                <button class="btn btn-secondary" id="upgrades-btn">스탯 강화</button>
-                <button class="btn btn-secondary" id="achievements-btn">업적</button>
-                <button class="btn btn-secondary" id="battlepass-btn">배틀패스</button>
-            </div> -->
 
         </div>
     </div>
@@ -303,8 +284,6 @@
     <script src="js/gacha.js?v=final3"></script>
     <script src="js/economy.js?v=final3"></script>
     <script src="js/upgrades.js?v=final3"></script>
-    <script src="js/battlepass.js?v=final3"></script>
-    <script src="js/achievements.js?v=final3"></script>
     <script src="js/renderer.js?v=final3"></script>
     <script src="js/tower-ui.js?v=final3"></script>
     <script src="js/tower-upgrade.js?v=final3"></script>
@@ -314,6 +293,66 @@
     <script src="js/panel-manager.js?v=final"></script>
 
     <script src="js/panel-toggle.js?v=final"></script>
+
+    <!-- 멀티플레이 로비 화면 -->
+    <div id="multiplayer-lobby-screen" class="screen">
+        <div class="multiplayer-lobby-container">
+            <h1 class="lobby-mode-title">👥 멀티플레이</h1>
+
+            <div class="lobby-input-group">
+                <label for="player-name-input">플레이어 이름</label>
+                <input type="text" id="player-name-input" placeholder="이름을 입력하세요" maxlength="10">
+            </div>
+
+            <button class="btn btn-primary btn-large" id="create-room-btn">🏠 방 만들기</button>
+
+            <div class="lobby-divider">또는</div>
+
+            <div class="lobby-input-group">
+                <label for="room-code-input">방 코드</label>
+                <input type="text" id="room-code-input" placeholder="8자리 코드 입력" maxlength="8"
+                    style="text-transform: uppercase;">
+            </div>
+
+            <button class="btn btn-primary btn-large" id="join-room-btn">🚪 방 입장</button>
+            <button class="btn btn-secondary" id="back-to-lobby-btn" style="margin-top: 10px; width: 100%;">←
+                로비로</button>
+
+            <div id="connection-status" style="margin-top: 20px; text-align: center;">연결 중...</div>
+        </div>
+    </div>
+
+    <!-- 대기실 화면 -->
+    <div id="waiting-room-screen" class="screen">
+        <div class="waiting-room-container">
+            <div class="room-code-display-container">
+                <div class="room-code-label">방 코드</div>
+                <div class="room-code-value" id="room-code-display">--------</div>
+            </div>
+
+            <div class="player-list-container">
+                <h3 class="player-list-title">참가자 목록</h3>
+                <div id="waiting-room-player-list">
+                    <!-- 동적으로 생성 -->
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-large" id="start-multiplayer-game-btn">🎮 게임 시작</button>
+            <button class="btn btn-secondary" id="leave-room-btn" style="margin-top: 10px; width: 100%;">← 나가기</button>
+        </div>
+    </div>
+
+    <!-- 다른 플레이어 필드 뷰어 (게임 중) -->
+    <div id="other-players-fields"></div>
+
+    <!-- Socket.IO 클라이언트 라이브러리 -->
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+
+    <!-- 멀티플레이 스크립트 -->
+    <script src="js/socket-client.js"></script>
+    <script src="js/multiplayer-room.js"></script>
+    <script src="js/multiplayer-game.js"></script>
+    <script src="js/multiplayer-notifications.js"></script>
 </body>
 
 </html>

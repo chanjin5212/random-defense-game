@@ -24,7 +24,7 @@ const CONFIG = {
         STARTING_GOLD: 50,
         SINGLE_PULL_COST: 10,
         TEN_PULL_COST: 90,
-        MISSION_BOSS_COOLDOWN: 60, // 초
+        MISSION_BOSS_COOLDOWN: 300, // 초 (5분)
         SELL_REFUND_PERCENT: 0.5 // 판매 시 50% 환불
     },
 

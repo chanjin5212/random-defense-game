@@ -346,6 +346,7 @@ class Monster {
         ctx.save();
 
         // 히트 플래시
+        // 히트 플래시
         if (this.hitFlash > 0) {
             ctx.shadowBlur = 20;
             ctx.shadowColor = '#FF0000';

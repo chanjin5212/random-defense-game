@@ -139,6 +139,11 @@ function initGachaUI() {
                     result.rarity,
                     result.rarityData.color
                 );
+
+                // 멀티플레이 모드면 서버에 알림
+                if (window.isMultiplayerMode && typeof notifyTowerAcquired === 'function') {
+                    notifyTowerAcquired(result);
+                }
             }
 
             // 만약 현재 보고 있는 칸에 타워가 추가되었다면 목록 갱신
@@ -202,6 +207,11 @@ function initGachaUI() {
                             result.rarity,
                             result.rarityData.color
                         );
+
+                        // 멀티플레이 모드면 서버에 알림
+                        if (window.isMultiplayerMode && typeof notifyTowerAcquired === 'function') {
+                            notifyTowerAcquired(result);
+                        }
                     }, addedCount * 500);
                 }
             } else {
