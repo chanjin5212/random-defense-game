@@ -8,16 +8,12 @@ function createMultiplayerRoom(playerName) {
     const socket = getSocket();
 
     if (!isSocketConnected()) {
-        showToast('서버에 연결되지 않았습니다.', 'error');
         return;
     }
 
     currentPlayerName = playerName;
 
     socket.emit('create-room', { playerName });
-
-    // 로딩 표시
-    showToast('방 생성 중...', 'info');
 }
 
 // 방 입장
@@ -25,16 +21,12 @@ function joinMultiplayerRoom(roomCode, playerName) {
     const socket = getSocket();
 
     if (!isSocketConnected()) {
-        showToast('서버에 연결되지 않았습니다.', 'error');
         return;
     }
 
     currentPlayerName = playerName;
 
     socket.emit('join-room', { roomCode: roomCode.toUpperCase(), playerName });
-
-    // 로딩 표시
-    showToast('방 입장 중...', 'info');
 }
 
 // 방 나가기
@@ -56,7 +48,6 @@ function startMultiplayerGame() {
     const socket = getSocket();
 
     if (!isRoomHost) {
-        showToast('방장만 게임을 시작할 수 있습니다.', 'error');
         return;
     }
 
@@ -86,8 +77,6 @@ function setupMultiplayerRoomListeners() {
         };
         isRoomHost = data.isHost;
 
-        showToast(`방이 생성되었습니다! 코드: ${data.roomCode}`, 'success');
-
         // 대기실 화면으로 이동
         showWaitingRoom();
         updatePlayerList(data.players);
@@ -102,8 +91,6 @@ function setupMultiplayerRoomListeners() {
         };
         isRoomHost = data.isHost;
 
-        showToast('방에 입장했습니다!', 'success');
-
         // 대기실 화면으로 이동
         showWaitingRoom();
         updatePlayerList(data.players);
@@ -114,7 +101,6 @@ function setupMultiplayerRoomListeners() {
         if (currentRoom) {
             currentRoom.players.push(data.player);
             updatePlayerList(currentRoom.players);
-            showToast(`${data.player.name}님이 입장했습니다.`, 'info');
         }
     });
 
@@ -127,7 +113,6 @@ function setupMultiplayerRoomListeners() {
             // 방장이 바뀐 경우
             if (data.newHost && data.newHost.id === socket.id) {
                 isRoomHost = true;
-                showToast('방장이 되었습니다!', 'info');
                 updateStartGameButton();
             }
         }
@@ -135,8 +120,6 @@ function setupMultiplayerRoomListeners() {
 
     // 게임 시작
     socket.on('game-started', (data) => {
-        showToast('게임이 시작됩니다!', 'success');
-
         // 멀티플레이 모드로 게임 시작
         setTimeout(() => {
             startGameInMultiplayerMode();
@@ -145,7 +128,7 @@ function setupMultiplayerRoomListeners() {
 
     // 에러 처리
     socket.on('room-error', (data) => {
-        showToast(data.message, 'error');
+        console.error('방 오류:', data.message);
     });
 
     console.log('✅ 멀티플레이 리스너 설정 완료');

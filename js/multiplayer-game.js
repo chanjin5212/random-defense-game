@@ -23,7 +23,7 @@ function setupMultiplayerGameListeners() {
     // 다른 플레이어 게임 종료
     socket.on('player-game-over', (data) => {
         const { playerName, score, round } = data;
-        showToast(`${playerName}님이 게임 종료! (Round ${round})`, 'info');
+        console.log(`${playerName}님이 게임 종료! (Round ${round})`);
     });
 
     // 속도 변경 (방장이 변경)
@@ -140,7 +140,6 @@ function applySpeedChange(speed) {
     if (btn) btn.textContent = `x${speed}`;
 
     console.log(`⚡ 속도 변경 적용: ${speed}x`);
-    showToast(`게임 속도: ${speed}x`, 'info');
 }
 
 // 타워 획득 알림 전송 (고급 타워만)
