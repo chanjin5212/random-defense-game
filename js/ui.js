@@ -14,6 +14,12 @@ function initUI() {
         });
     }
 
+    // FX 버튼
+    const fxBtn = document.getElementById('fx-btn-container');
+    if (fxBtn) {
+        fxBtn.addEventListener('click', toggleGraphicsQuality);
+    }
+
     // 관리자 기능
     const adminStartBtn = document.getElementById('admin-start-btn');
     if (adminStartBtn) adminStartBtn.addEventListener('click', startAdminGame);
@@ -287,4 +293,26 @@ function spawnMissionBoss() {
     if (window.game && window.game.missionBossCooldown <= 0) {
         window.game.spawnMissionBoss();
     }
+}
+
+function toggleGraphicsQuality() {
+    const qualities = ['high', 'low', 'off'];
+    const current = CONFIG.GRAPHICS.PARTICLE_QUALITY;
+    const currentIndex = qualities.indexOf(current);
+    const nextIndex = (currentIndex + 1) % qualities.length;
+
+    CONFIG.GRAPHICS.PARTICLE_QUALITY = qualities[nextIndex];
+
+    // UI 업데이트
+    const btn = document.getElementById('fx-display');
+    if (btn) {
+        const labels = {
+            'high': 'FX: High',
+            'low': 'FX: Low',
+            'off': 'FX: Off'
+        };
+        btn.textContent = labels[CONFIG.GRAPHICS.PARTICLE_QUALITY];
+    }
+
+    showToast(`그래픽 설정: ${CONFIG.GRAPHICS.PARTICLE_QUALITY.toUpperCase()}`, 'info');
 }

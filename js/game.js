@@ -509,11 +509,20 @@ class Game {
     }
 
     createHitParticles(x, y, color) {
+        // 그래픽 설정 확인
+        const quality = CONFIG.GRAPHICS.PARTICLE_QUALITY;
+        if (quality === 'off') return;
+
         // 파티클 최적화: 현재 파티클 수가 200개 이상이면 생성 중단
         if (this.particles.length > 200) return;
 
         // 배속 상태거나 파티클이 많으면 생성 개수 감소
-        const count = (this.particles.length > 100 || this.gameSpeed > 1) ? 2 : 5;
+        let count = (this.particles.length > 100 || this.gameSpeed > 1) ? 2 : 5;
+
+        // Low 옵션이면 파티클 수 대폭 감소
+        if (quality === 'low') {
+            count = 1;
+        }
 
         for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;

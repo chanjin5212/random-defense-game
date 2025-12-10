@@ -14,6 +14,11 @@ const CONFIG = {
         FPS: 60
     },
 
+    // 그래픽 설정
+    GRAPHICS: {
+        PARTICLE_QUALITY: 'high' // high, low, off
+    },
+
     // 경제 설정
     ECONOMY: {
         STARTING_GOLD: 50,

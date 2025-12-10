@@ -665,9 +665,14 @@ class Tower {
         }
 
         // 각 타겟에 번개 파티클 생성
+        const quality = CONFIG.GRAPHICS.PARTICLE_QUALITY;
+        if (quality === 'off') return;
+
+        const particleCount = quality === 'low' ? 2 : 8;
+
         targets.forEach(target => {
-            for (let i = 0; i < 8; i++) {
-                const angle = (Math.PI * 2 * i) / 8;
+            for (let i = 0; i < particleCount; i++) {
+                const angle = (Math.PI * 2 * i) / particleCount;
                 const speed = 2;
                 const particle = new Particle(
                     target.x, target.y,
@@ -704,8 +709,13 @@ class Tower {
     createExplosionParticles(x, y) {
         if (!window.game) return;
 
-        for (let i = 0; i < 20; i++) {
-            const angle = (Math.PI * 2 / 20) * i;
+        const quality = CONFIG.GRAPHICS.PARTICLE_QUALITY;
+        if (quality === 'off') return;
+
+        const count = quality === 'low' ? 5 : 20;
+
+        for (let i = 0; i < count; i++) {
+            const angle = (Math.PI * 2 / count) * i;
             const speed = randomInt(2, 5);
             const particle = new Particle(
                 x, y,
