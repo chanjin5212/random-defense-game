@@ -13,7 +13,6 @@ function setupMultiplayerNotifications() {
         showTowerNotification(data.playerName, data.tower);
     });
 
-    console.log('✅ 알림 리스너 설정 완료');
 }
 
 // 타워 획득 알림 표시

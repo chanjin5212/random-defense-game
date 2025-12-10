@@ -21,9 +21,9 @@ const CONFIG = {
 
     // 경제 설정
     ECONOMY: {
-        STARTING_GOLD: 50,
-        SINGLE_PULL_COST: 10,
-        TEN_PULL_COST: 90,
+        STARTING_GOLD: 250,
+        SINGLE_PULL_COST: 50,
+        TEN_PULL_COST: 450,
         MISSION_BOSS_COOLDOWN: 300, // 초 (5분)
         SELL_REFUND_PERCENT: 0.5 // 판매 시 50% 환불
     },
@@ -77,14 +77,14 @@ const CONFIG = {
     },
 
     // 몬스터 스케일링
-    // 몬스터 스케일링
     MONSTER: {
         BASE_HP: 200,
         HP_SCALING: 1.15, // 1.25 -> 1.15 (추가 하향 조정)
         BASE_SPEED: 1.0,
         MAX_SPEED: 2.5,
-        BASE_GOLD: 1,
-        GOLD_SCALING: 15 // 유지
+        BASE_GOLD: 1, // 마리당 1원
+        GOLD_SCALING: 1, // 스케일링 없음
+        ROUND_BONUS: 20 // 라운드 시작 시 20원 보너스
     },
 
     // 몬스터 타입
@@ -161,7 +161,7 @@ const CONFIG = {
         SPEED_MULTIPLIER: 0.6, // 보스는 느림
         REWARDS: {
             // 보스 처치 시 보상 (기본값)
-            DEFAULT: 1000
+            DEFAULT: 100
         },
         ABILITIES: {
             20: ['regen'], // 체력 재생 1%/초
@@ -221,22 +221,22 @@ const CONFIG = {
     TOWER_UPGRADES: {
         STANDARD: {
             name: '일반 타워 강화',
-            baseCost: 10,
-            costPerLevel: 5, // 레벨당 5원 증가
+            baseCost: 20,
+            costPerLevel: 10, // 레벨당 10원 증가
             maxLevel: 100,
             damagePerLevel: 100 // 레벨당 100% 증가 (x2, x3, x4...)
         },
         SPLASH: {
             name: '스플래시 타워 강화',
-            baseCost: 10,
-            costPerLevel: 5, // 레벨당 5원 증가
+            baseCost: 20,
+            costPerLevel: 10, // 레벨당 10원 증가
             maxLevel: 100,
             damagePerLevel: 100
         },
         SNIPER: {
             name: '저격 타워 강화',
-            baseCost: 10,
-            costPerLevel: 5, // 레벨당 5원 증가
+            baseCost: 20,
+            costPerLevel: 10, // 레벨당 10원 증가
             maxLevel: 100,
             damagePerLevel: 100
         }

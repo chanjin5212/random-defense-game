@@ -92,7 +92,8 @@ function calculateMonsterSpeed(round) {
 
 // 몬스터 골드 드랍 계산
 function calculateGoldDrop(round) {
-    return Math.floor(CONFIG.MONSTER.BASE_GOLD + (round / CONFIG.MONSTER.GOLD_SCALING));
+    // 마리당 1원 고정
+    return CONFIG.MONSTER.BASE_GOLD;
 }
 
 // 보스 HP 계산

@@ -274,6 +274,12 @@ class Game {
 
     startRound() {
         this.roundTimer = CONFIG.GAME.ROUND_DURATION;
+
+        // 라운드 시작 보너스 (20원)
+        const roundBonus = CONFIG.MONSTER.ROUND_BONUS || 20;
+        this.addGold(roundBonus);
+        showToast(`라운드 시작 보너스 +${roundBonus}골드`, 'success');
+
         this.monsterManager.startRound(this.currentRound);
         this.updateUI();
     }

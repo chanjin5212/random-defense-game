@@ -70,7 +70,6 @@ function setupMultiplayerRoomListeners() {
 
     // 방 생성 완료
     socket.on('room-created', (data) => {
-        console.log('🏠 방 생성 이벤트 수신:', data);
         currentRoom = {
             code: data.roomCode,
             players: data.players
@@ -84,7 +83,6 @@ function setupMultiplayerRoomListeners() {
 
     // 방 입장 완료
     socket.on('room-joined', (data) => {
-        console.log('🚪 방 입장 이벤트 수신:', data);
         currentRoom = {
             code: data.roomCode,
             players: data.players
@@ -131,7 +129,6 @@ function setupMultiplayerRoomListeners() {
         console.error('방 오류:', data.message);
     });
 
-    console.log('✅ 멀티플레이 리스너 설정 완료');
 }
 
 // 대기실 화면 표시
@@ -206,7 +203,6 @@ function startGameInMultiplayerMode() {
     // 게임 상태 동기화 시작
     if (typeof startGameStateSync === 'function') {
         startGameStateSync();
-        console.log('🔄 게임 상태 동기화 시작');
     }
 }
 

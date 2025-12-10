@@ -30,8 +30,6 @@ class GameSync {
     handleGameStateUpdate(socket, data) {
         const { roomCode, gameState } = data;
 
-        console.log(`📥 게임 상태 수신: ${socket.id} - Round ${gameState.round}, 💰 ${gameState.gold}, 👾 ${gameState.monsters}`);
-
         // 플레이어 상태 저장
         this.roomManager.updatePlayerGameState(roomCode, socket.id, gameState);
 
