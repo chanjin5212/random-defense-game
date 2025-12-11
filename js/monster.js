@@ -179,6 +179,9 @@ class Monster {
     }
 
     createDamageText(damage) {
+        // 데미지 텍스트 개수 제한 (성능 최적화 - 최대 3개)
+        if (this.damageTexts.length >= 3) return;
+
         // 데미지 텍스트 객체 생성
         const text = {
             damage: Math.round(damage),

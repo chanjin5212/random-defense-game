@@ -422,8 +422,13 @@ class Game {
         // DPS 계산
         this.updateDPS(deltaTime);
 
-        // UI 업데이트
-        this.updateUI();
+        // UI 업데이트 (매 프레임이 아닌 5프레임마다 - 성능 최적화)
+        if (!this.uiUpdateCounter) this.uiUpdateCounter = 0;
+        this.uiUpdateCounter++;
+        if (this.uiUpdateCounter >= 5) {
+            this.updateUI();
+            this.uiUpdateCounter = 0;
+        }
     }
 
     updateProjectiles(deltaTime) {
