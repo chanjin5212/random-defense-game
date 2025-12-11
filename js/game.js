@@ -363,10 +363,10 @@ class Game {
         if (this.roundTimer <= 0) {
             // 보스 라운드인지 확인
             if (isBossRound(this.currentRound)) {
-                // 보스가 살아있는지 확인
-                const bossAlive = this.monsterManager.monsters.some(m => m.isBoss && m.alive);
+                // 스테이지 보스가 살아있는지 확인 (미션 보스는 제외)
+                const stageBossAlive = this.monsterManager.monsters.some(m => m.isBoss && !m.isMissionBoss && m.alive);
 
-                if (bossAlive) {
+                if (stageBossAlive) {
                     // 보스를 처치하지 못함 - 게임 오버
                     showToast('보스를 처치하지 못했습니다!', 'error');
                     this.gameOver();
