@@ -163,8 +163,7 @@ class Tower {
         this.skillActive = true;
         this.skillTimer = this.skill.duration;
         this.attackSpeed = this.originalAttackSpeed / this.skill.speedMult;
-        // 시각 효과 (임시)
-        if (window.game) window.game.createHitParticles(this.x, this.y, '#FFFF00');
+        // 시각 효과 제거됨
     }
 
     deactivateSkill() {
@@ -351,7 +350,7 @@ class Tower {
                     this.skillActive = true;
                     this.skillTimer = this.skill.duration;
                     this.attackSpeed = this.originalAttackSpeed / (1 + this.skill.speedBoost);
-                    if (window.game) window.game.createHitParticles(this.x, this.y, '#FFD700');
+                    // 시각 효과 제거됨
                 }
 
                 // Chain Attack (Standard Mythic) - 50% 확률로 즉시 재공격

@@ -157,12 +157,13 @@ const CONFIG = {
     BOSS: {
         INTERVAL: 20, // 20라운드마다 보스 등장
         HP_MULTIPLIER: 50, // 일반 몬스터 체력의 배수
-        DEFENSE: 0.3, // 30% 방어막
+        DEFENSE: 0, // 방어막 없음
         SPEED_MULTIPLIER: 0.6, // 보스는 느림
-        REGEN_RATE: 0.01, // 초당 1% 체력 재생
+        SHIELD_PERCENT: 0.01, // 최대 체력의 1% 실드
+        SHIELD_REGEN_INTERVAL: 2.0, // 2초마다 실드 재생
         REWARDS: {
             // 보스 처치 시 보상 (기본값)
-            DEFAULT: 100
+            DEFAULT: 500
         }
     },
 

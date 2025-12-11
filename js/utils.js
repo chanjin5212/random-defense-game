@@ -110,8 +110,8 @@ function isBossRound(round) {
 
 // 보스 능력 가져오기
 function getBossAbilities(round) {
-    // 모든 보스는 체력 재생만 보유
-    return ['regen'];
+    // 모든 보스는 실드 보유
+    return ['shield'];
 }
 
 // 보스 보상 가져오기

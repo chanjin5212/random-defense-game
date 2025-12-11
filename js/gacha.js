@@ -35,6 +35,11 @@ class GachaSystem {
 
         this.pullHistory.push(result);
 
+        // 업적 추적
+        if (window.achievementManager) {
+            window.achievementManager.addTower(tower, rarity);
+        }
+
         return result;
     }
 

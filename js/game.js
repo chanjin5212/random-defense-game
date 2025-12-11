@@ -283,7 +283,6 @@ class Game {
         // 라운드 시작 보너스 (20원)
         const roundBonus = CONFIG.MONSTER.ROUND_BONUS || 20;
         this.addGold(roundBonus);
-        showToast(`라운드 시작 보너스 +${roundBonus}골드`, 'success');
 
         this.monsterManager.startRound(this.currentRound);
         this.updateUI();
@@ -363,7 +362,7 @@ class Game {
             if (isBossRound(this.currentRound)) {
                 // 보스가 살아있는지 확인
                 const bossAlive = this.monsterManager.monsters.some(m => m.isBoss && m.alive);
-                
+
                 if (bossAlive) {
                     // 보스를 처치하지 못함 - 게임 오버
                     showToast('보스를 처치하지 못했습니다!', 'error');
@@ -442,8 +441,7 @@ class Game {
                         const damage = projectile.tower.applyDamageToTarget(projectile.target, projectile.damage);
                         this.damageDealt += damage;
 
-                        // 파티클 생성
-                        this.createHitParticles(projectile.target.x, projectile.target.y, projectile.color);
+                        // 파티클 생성 제거됨
                     }
                     projectile.dead = true;
                 } else if (!projectile.target) {
@@ -663,6 +661,8 @@ window.addEventListener('load', () => {
     window.economy = new EconomyManager();
 
     window.upgradeManager = new UpgradeManager();
+
+    window.achievementManager = new AchievementManager();
 
     window.towerUpgradeManager = new TowerUpgradeManager();
 

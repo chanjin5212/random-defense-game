@@ -158,6 +158,7 @@
 /* 버튼 스타일 - 컴팩트 */
 .btn-gacha,
 .btn-boss,
+.btn-achievement,
 .btn-upgrade,
 .btn-back {
     width: 100%;
@@ -180,6 +181,10 @@
     background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
 }
 
+.btn-achievement {
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+}
+
 .btn-boss {
     background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
 }
@@ -194,6 +199,7 @@
 
 .btn-gacha:active:not(:disabled),
 .btn-boss:active:not(:disabled),
+.btn-achievement:active,
 .btn-upgrade:active:not(:disabled),
 .btn-back:active {
     transform: scale(0.98);
@@ -377,9 +383,15 @@
 /* 버튼 그리드 시스템 */
 .button-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 8px;
     width: 100%;
+}
+
+.button-grid .btn-boss,
+.button-grid .btn-achievement,
+.button-grid .btn-upgrade {
+    justify-content: center;
 }
 
 #gacha-button-grid {
@@ -388,6 +400,7 @@
 
 .button-grid .btn-gacha,
 .button-grid .btn-boss,
+.button-grid .btn-achievement,
 .button-grid .btn-upgrade,
 .button-grid .btn-back,
 .button-grid .btn-sell {

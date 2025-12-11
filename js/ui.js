@@ -110,6 +110,7 @@ function initUI() {
     initUpgradeUI();
     updateLobbyUI();
     updateGachaCosts(); // CONFIG에서 가챠 비용 업데이트
+    initAchievementUI(); // 업적 UI 초기화
 }
 
 // CONFIG에서 가챠 비용 업데이트

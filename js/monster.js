@@ -25,8 +25,8 @@ class Monster {
             this.maxHP = calculateBossHP(round);
             this.speed = calculateMonsterSpeed(round) * CONFIG.BOSS.SPEED_MULTIPLIER * 100; // 100배 빠르게
             this.defense = CONFIG.BOSS.DEFENSE;
-            // 미션 보스는 고정 100골드, 일반 보스는 라운드 비례
-            this.goldReward = isMissionBoss ? 100 : getBossReward(round);
+            // 미션 보스는 고정 500골드, 일반 보스는 라운드 비례
+            this.goldReward = isMissionBoss ? 500 : getBossReward(round);
             this.abilities = getBossAbilities(round);
             this.size = isMissionBoss ? 50 : 40;
         } else {
@@ -65,7 +65,8 @@ class Monster {
         if (isBoss) {
             this.shieldCooldown = 0;
             this.shieldActive = false;
-            this.regenTick = 0;
+            this.shieldHP = 0; // 실드 체력
+            this.maxShieldHP = this.maxHP * CONFIG.BOSS.SHIELD_PERCENT; // 최대 실드 = 체력의 1%
         }
 
         // 위치
@@ -73,8 +74,7 @@ class Monster {
         this.x = pos.x;
         this.y = pos.y;
 
-        // 시각 효과
-        this.hitFlash = 0;
+        // 시각 효과 제거됨
 
         // 데미지 텍스트
         this.damageTexts = [];
@@ -162,10 +162,7 @@ class Monster {
             this.updateBossAbilities(deltaTime);
         }
 
-        // 시각 효과 업데이트
-        if (this.hitFlash > 0) {
-            this.hitFlash -= deltaTime * 5;
-        }
+        // 시각 효과 제거됨
 
         // 데미지 텍스트 업데이트
         this.damageTexts.forEach(text => {
@@ -221,25 +218,15 @@ class Monster {
     }
 
     updateBossAbilities(deltaTime) {
-        // 재생 능력
-        if (this.abilities.includes('regen')) {
-            this.regenTick += deltaTime;
-            if (this.regenTick >= 1.0) {
-                this.hp = Math.min(this.hp + this.maxHP * CONFIG.BOSS.REGEN_RATE, this.maxHP);
-                this.regenTick = 0;
-            }
-        }
-
         // 실드 능력
         if (this.abilities.includes('shield')) {
+            // 실드 재생 쿨다운
             if (this.shieldCooldown > 0) {
                 this.shieldCooldown -= deltaTime;
             } else {
-                this.shieldActive = true;
-                this.shieldCooldown = 5.0;
-                setTimeout(() => {
-                    this.shieldActive = false;
-                }, 3000);
+                // 실드 재생
+                this.shieldHP = this.maxShieldHP;
+                this.shieldCooldown = CONFIG.BOSS.SHIELD_REGEN_INTERVAL;
             }
         }
     }
@@ -255,13 +242,21 @@ class Monster {
         // 방어력 적용
         let actualDamage = damage * (1 - this.defense);
 
-        // 보스 실드 적용
-        if (this.isBoss && this.shieldActive) {
-            actualDamage *= 0.5;
+        // 보스 실드 적용 (실드가 먼저 데미지 흡수)
+        if (this.isBoss && this.shieldHP > 0) {
+            if (actualDamage <= this.shieldHP) {
+                // 실드가 모든 데미지 흡수
+                this.shieldHP -= actualDamage;
+                actualDamage = 0;
+            } else {
+                // 실드가 일부만 흡수하고 나머지는 체력에
+                actualDamage -= this.shieldHP;
+                this.shieldHP = 0;
+            }
         }
 
         this.hp -= actualDamage;
-        this.hitFlash = 1.0;
+        // hitFlash 제거됨
 
         // 데미지 텍스트 생성
         this.createDamageText(actualDamage);
@@ -270,7 +265,7 @@ class Monster {
             if (this.isDummy) {
                 // 더미는 죽지 않고 즉시 회복
                 this.hp = this.maxHP;
-                this.hitFlash = 1.0;
+                // hitFlash 제거됨
                 return actualDamage;
             }
             this.die();
@@ -345,12 +340,7 @@ class Monster {
         // 몬스터 본체
         ctx.save();
 
-        // 히트 플래시
-        // 히트 플래시
-        if (this.hitFlash > 0) {
-            ctx.shadowBlur = 20;
-            ctx.shadowColor = '#FF0000';
-        }
+        // 히트 플래시 제거됨
 
         // 보스는 더 크고 화려하게
         if (this.isBoss) {
@@ -430,8 +420,8 @@ class Monster {
             ctx.fillText('👑', this.x, this.y - this.size - 10);
         }
 
-        // 실드 표시
-        if (this.shieldActive) {
+        // 실드 표시 (실드 HP가 있을 때)
+        if (this.shieldHP > 0) {
             ctx.strokeStyle = '#3B82F6';
             ctx.lineWidth = 2;
             ctx.setLineDash([5, 5]);
