@@ -609,14 +609,19 @@ class Tower {
         while (chainCount < maxChains) {
             // 현재 타겟 주변의 다음 타겟 찾기 (가장 가까운)
             let nearestMonster = null;
-            let nearestDist = Infinity;
+            let nearestDistSq = Infinity;
+            const radiusSq = radius * radius; // 제곱 거리로 비교 (sqrt 제거)
 
             monsters.forEach(monster => {
                 if (hitMonsters.has(monster) || !monster.alive) return;
 
-                const dist = distance(currentTarget.x, currentTarget.y, monster.x, monster.y);
-                if (dist <= radius && dist < nearestDist) {
-                    nearestDist = dist;
+                // 제곱 거리 계산 (성능 최적화)
+                const dx = currentTarget.x - monster.x;
+                const dy = currentTarget.y - monster.y;
+                const distSq = dx * dx + dy * dy;
+
+                if (distSq <= radiusSq && distSq < nearestDistSq) {
+                    nearestDistSq = distSq;
                     nearestMonster = monster;
                 }
             });
@@ -653,8 +658,11 @@ class Tower {
     createChainLightning(targets) {
         if (!window.game || targets.length < 2) return;
 
-        // 번개 연쇄 이펙트 생성
+        // 번개 연쇄 이펙트 생성 (성능 최적화 - 3개마다 1개만 표시)
         for (let i = 0; i < targets.length - 1; i++) {
+            // 3번째마다만 이펙트 생성 (데미지는 모두 적용, 이펙트만 제한)
+            if (i % 3 !== 0) continue;
+
             const from = targets[i];
             const to = targets[i + 1];
 
