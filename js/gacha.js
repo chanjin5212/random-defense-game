@@ -362,10 +362,48 @@ function initGachaUI() {
         const rarityData = CONFIG.RARITY[rarity];
         const towerData = CONFIG.TOWERS[towerType];
         const count = getTowerCount(towerType, rarity);
-        btn.style.cssText = `padding: 15px; background: ${count > 0 ? rarityData.color : '#374151'}; color: white; border: 2px solid ${count > 0 ? '#FFFFFF' : '#4B5563'}; border-radius: 8px; cursor: ${count > 0 ? 'pointer' : 'not-allowed'}; opacity: ${count > 0 ? '1' : '0.5'}; font-size: 14px; font-weight: bold; text-align: center; transition: transform 0.2s;`;
+        btn.style.cssText = `padding: 15px; background: ${count > 0 ? rarityData.color : '#374151'}; color: white; border: 2px solid ${count > 0 ? '#FFFFFF' : '#4B5563'}; border-radius: 8px; cursor: ${count > 0 ? 'pointer' : 'not-allowed'}; opacity: ${count > 0 ? '1' : '0.5'}; font-size: 14px; font-weight: bold; text-align: center; transition: transform 0.2s; user-select: none; -webkit-user-select: none; touch-action: manipulation; -webkit-touch-callout: none;`;
         btn.innerHTML = `<div>${towerData.name.replace(' 타워', '')}</div><div style="font-size: 12px; margin: 5px 0;">${rarityData.name}</div><div style="font-size: 11px;">보유: ${count}개</div><div style="font-size: 13px; color: #FCD34D;">${rarityData.sellPrice}G</div>`;
         if (count > 0) {
-            btn.addEventListener('click', () => sellTower(towerType, rarity));
+            let sellInterval = null;
+            let sellTimeout = null;
+            let sellSpeed = 200;
+
+            const startSelling = () => {
+                sellTower(towerType, rarity);
+                sellTimeout = setTimeout(() => {
+                    sellSpeed = 200;
+                    sellInterval = setInterval(() => {
+                        if (getTowerCount(towerType, rarity) <= 0) {
+                            if (sellTimeout) clearTimeout(sellTimeout);
+                            if (sellInterval) clearInterval(sellInterval);
+                            return;
+                        }
+                        sellTower(towerType, rarity);
+                        if (sellSpeed > 50) {
+                            sellSpeed -= 10;
+                            clearInterval(sellInterval);
+                            sellInterval = setInterval(() => {
+                                if (getTowerCount(towerType, rarity) <= 0) return;
+                                sellTower(towerType, rarity);
+                            }, sellSpeed);
+                        }
+                    }, sellSpeed);
+                }, 200);
+            };
+
+            const stopSelling = () => {
+                if (sellTimeout) clearTimeout(sellTimeout);
+                if (sellInterval) clearInterval(sellInterval);
+                sellSpeed = 200;
+            };
+
+            btn.addEventListener('mousedown', (e) => { e.preventDefault(); startSelling(); });
+            btn.addEventListener('mouseup', stopSelling);
+            btn.addEventListener('mouseleave', stopSelling);
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); startSelling(); }, { passive: false });
+            btn.addEventListener('touchend', stopSelling);
+            btn.addEventListener('touchcancel', stopSelling);
             btn.addEventListener('mouseenter', () => btn.style.transform = 'scale(1.05)');
             btn.addEventListener('mouseleave', () => btn.style.transform = 'scale(1)');
         }
