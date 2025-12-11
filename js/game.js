@@ -315,8 +315,11 @@ class Game {
 
         if (!this.gameSpeed) this.gameSpeed = 1;
 
+        // 1 -> 2 -> 3 -> 5 -> 10 -> 1 순환
         if (this.gameSpeed === 1) this.gameSpeed = 2;
         else if (this.gameSpeed === 2) this.gameSpeed = 3;
+        else if (this.gameSpeed === 3) this.gameSpeed = 5;
+        else if (this.gameSpeed === 5) this.gameSpeed = 10;
         else this.gameSpeed = 1;
 
         // UI 업데이트
