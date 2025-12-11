@@ -212,6 +212,7 @@ function updateGameUI() {
     // 미션 보스
     const bossBtn = document.getElementById('mission-boss-btn');
     const cooldownSpan = document.getElementById('boss-cooldown');
+    const bossHpDisplay = document.getElementById('boss-hp-display');
 
     if (bossBtn && cooldownSpan) {
         const bossCooldown = window.game.missionBossCooldown;
@@ -221,6 +222,13 @@ function updateGameUI() {
         } else {
             bossBtn.disabled = false;
             cooldownSpan.textContent = '준비';
+        }
+
+        // 미션 보스 체력 표시 (현재 라운드 기준)
+        if (bossHpDisplay) {
+            const currentRound = window.game.currentRound;
+            const missionBossHP = calculateBossHP(currentRound);
+            bossHpDisplay.textContent = `HP: ${formatNumber(missionBossHP)}`;
         }
     }
 
