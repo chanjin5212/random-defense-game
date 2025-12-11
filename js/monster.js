@@ -225,7 +225,7 @@ class Monster {
         if (this.abilities.includes('regen')) {
             this.regenTick += deltaTime;
             if (this.regenTick >= 1.0) {
-                this.hp = Math.min(this.hp + this.maxHP * 0.01, this.maxHP);
+                this.hp = Math.min(this.hp + this.maxHP * CONFIG.BOSS.REGEN_RATE, this.maxHP);
                 this.regenTick = 0;
             }
         }

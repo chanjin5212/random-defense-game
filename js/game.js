@@ -273,7 +273,12 @@ class Game {
     }
 
     startRound() {
-        this.roundTimer = CONFIG.GAME.ROUND_DURATION;
+        // 보스 라운드면 60초, 일반 라운드면 30초
+        if (isBossRound(this.currentRound)) {
+            this.roundTimer = CONFIG.GAME.BOSS_ROUND_DURATION;
+        } else {
+            this.roundTimer = CONFIG.GAME.ROUND_DURATION;
+        }
 
         // 라운드 시작 보너스 (20원)
         const roundBonus = CONFIG.MONSTER.ROUND_BONUS || 20;
@@ -354,11 +359,22 @@ class Game {
         }
 
         if (this.roundTimer <= 0) {
-            // 라운드 종료 - 몬스터가 남아있어도 다음 라운드로
-            if (this.monsterManager.isRoundComplete()) {
-                this.nextRound();
+            // 보스 라운드인지 확인
+            if (isBossRound(this.currentRound)) {
+                // 보스가 살아있는지 확인
+                const bossAlive = this.monsterManager.monsters.some(m => m.isBoss && m.alive);
+                
+                if (bossAlive) {
+                    // 보스를 처치하지 못함 - 게임 오버
+                    showToast('보스를 처치하지 못했습니다!', 'error');
+                    this.gameOver();
+                    return;
+                } else {
+                    // 보스 처치 성공 - 다음 라운드
+                    this.nextRound();
+                }
             } else {
-                // 시간 초과해도 다음 라운드로 (몬스터는 계속 쌓임)
+                // 일반 라운드 - 시간 초과해도 다음 라운드로 (몬스터는 계속 쌓임)
                 this.nextRound();
             }
         }

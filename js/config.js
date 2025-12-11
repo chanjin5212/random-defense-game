@@ -4,7 +4,8 @@ const CONFIG = {
     // 게임 기본 설정
     GAME: {
         MAX_ROUNDS: Infinity, // 무한 라운드
-        ROUND_DURATION: 30, // 초
+        ROUND_DURATION: 30, // 초 (일반 라운드)
+        BOSS_ROUND_DURATION: 60, // 초 (보스 라운드)
         GRID_ROWS: 3, // 그리드 행 수 (모바일 최적화)
         GRID_COLS: 4, // 그리드 열 수 (모바일 최적화)
         TOWERS_PER_SLOT: 50, // 각 칸당 최대 타워 수 (물량전)
@@ -31,8 +32,8 @@ const CONFIG = {
     // 등급 시스템
     RARITY: {
         COMMON: { name: '일반', multiplier: 1.0, color: '#94A3B8', probability: 0.50, sellPrice: 5 },
-        UNCOMMON: { name: '희귀', multiplier: 1.5, color: '#22C55E', probability: 0.331, sellPrice: 8 },
-        RARE: { name: '레어', multiplier: 3.0, color: '#3B82F6', probability: 0.102, sellPrice: 20 },
+        UNCOMMON: { name: '희귀', multiplier: 2.0, color: '#22C55E', probability: 0.331, sellPrice: 8 },
+        RARE: { name: '레어', multiplier: 5.0, color: '#3B82F6', probability: 0.102, sellPrice: 20 },
         EPIC: { name: '에픽', multiplier: 10.0, color: '#A855F7', probability: 0.051, sellPrice: 50 },
         UNIQUE: { name: '유니크', multiplier: 50.0, color: '#E879F9', probability: 0.008, sellPrice: 100 },
         LEGENDARY: { name: '레전드', multiplier: 200.0, color: '#F43F5E', probability: 0.005, sellPrice: null }, // 판매 불가
@@ -47,7 +48,7 @@ const CONFIG = {
             id: 1,
             name: '일반 타워',
             type: 'attack',
-            baseDamage: 20, // 15 -> 20 (상향)
+            baseDamage: 40, // 20 -> 40 (2배 상향)
             attackSpeed: 0.8, // 1.0 -> 0.8 (상향)
             range: 450,
             description: '평범한 공격력과 공속',
@@ -57,7 +58,7 @@ const CONFIG = {
             id: 2,
             name: '스플래시 타워',
             type: 'attack',
-            baseDamage: 4, // 10 -> 4 (대폭 하향)
+            baseDamage: 10, // 4 -> 10 (2.5배 상향)
             attackSpeed: 1.2,
             range: 400,
             description: '범위 공격으로 다수 처치',
@@ -155,19 +156,13 @@ const CONFIG = {
     // 보스 설정
     BOSS: {
         INTERVAL: 20, // 20라운드마다 보스 등장
-        BASE_HP: 10000,
-        HP_SCALING: 1.15, // BossHP = 10000 × (1.15 ^ (boss_round-1))
+        HP_MULTIPLIER: 50, // 일반 몬스터 체력의 배수
         DEFENSE: 0.3, // 30% 방어막
         SPEED_MULTIPLIER: 0.6, // 보스는 느림
+        REGEN_RATE: 0.01, // 초당 1% 체력 재생
         REWARDS: {
             // 보스 처치 시 보상 (기본값)
             DEFAULT: 100
-        },
-        ABILITIES: {
-            20: ['regen'], // 체력 재생 1%/초
-            40: ['shield'], // 실드 (피해 50% 감소, 5초 간격)
-            60: ['regen', 'shield'], // 재생 + 실드
-            80: ['regen', 'shield', 'split'] // 모든 능력
         }
     },
 

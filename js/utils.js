@@ -98,10 +98,9 @@ function calculateGoldDrop(round) {
 
 // 보스 HP 계산
 function calculateBossHP(round) {
-    // 20라운드마다 보스가 나오므로, 해당 라운드의 몬스터 체력을 기준으로 뻥튀기
-    // 보스는 몬스터의 100배 체력
+    // CONFIG.BOSS.HP_MULTIPLIER 사용
     const monsterHP = calculateMonsterHP(round);
-    return monsterHP * 100;
+    return monsterHP * CONFIG.BOSS.HP_MULTIPLIER;
 }
 
 // 보스 라운드 확인
@@ -111,15 +110,8 @@ function isBossRound(round) {
 
 // 보스 능력 가져오기
 function getBossAbilities(round) {
-    // 라운드가 진행될수록 능력 추가
-    const bossCount = Math.floor(round / CONFIG.BOSS.INTERVAL);
-    const abilities = [];
-
-    if (bossCount >= 1) abilities.push('regen');
-    if (bossCount >= 2) abilities.push('shield');
-    if (bossCount >= 3) abilities.push('split');
-
-    return abilities;
+    // 모든 보스는 체력 재생만 보유
+    return ['regen'];
 }
 
 // 보스 보상 가져오기

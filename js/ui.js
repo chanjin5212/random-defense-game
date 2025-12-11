@@ -109,6 +109,20 @@ function initUI() {
     initGachaUI();
     initUpgradeUI();
     updateLobbyUI();
+    updateGachaCosts(); // CONFIG에서 가챠 비용 업데이트
+}
+
+// CONFIG에서 가챠 비용 업데이트
+function updateGachaCosts() {
+    const singleCostEl = document.getElementById('single-pull-cost');
+    const tenCostEl = document.getElementById('ten-pull-cost');
+
+    if (singleCostEl) {
+        singleCostEl.textContent = `${CONFIG.ECONOMY.SINGLE_PULL_COST}G`;
+    }
+    if (tenCostEl) {
+        tenCostEl.textContent = `${CONFIG.ECONOMY.TEN_PULL_COST}G`;
+    }
 }
 
 function showScreen(screenId) {
