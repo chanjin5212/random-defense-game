@@ -274,6 +274,11 @@ function showGameOver() {
 }
 
 function startGame() {
+    // 사운드 시스템 초기화 (사용자 인터랙션 필요)
+    if (window.soundSystem) {
+        window.soundSystem.init();
+    }
+
     showScreen('game-screen');
     if (window.game) {
         window.game.start(false); // 일반 모드

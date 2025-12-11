@@ -309,6 +309,9 @@ class Tower {
         if (window.game) {
             // 스플래시 타워(AOE): 즉발 연쇄 번개 공격
             if (this.effect === 'aoe') {
+                // 사운드 재생
+                if (window.soundSystem) window.soundSystem.playSplashAttack();
+
                 this.createSingleLightning(this, target);
                 this.applyDamageToTarget(target, finalDamage);
 
@@ -321,6 +324,9 @@ class Tower {
             }
             // 저격 타워(SNIPER): 즉발 레이저 공격
             else if (this.effect === 'sniper') {
+                // 사운드 재생
+                if (window.soundSystem) window.soundSystem.playSniperShot();
+
                 this.createLaserEffect(this, target);
                 this.applyDamageToTarget(target, finalDamage);
 
@@ -332,6 +338,9 @@ class Tower {
             }
             // 일반 타워: 투사체 발사
             else {
+                // 사운드 재생
+                if (window.soundSystem) window.soundSystem.playStandardShot();
+
                 const projectile = new Projectile(
                     this.x, this.y,
                     target.x, target.y,
