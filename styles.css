@@ -47,7 +47,14 @@ body {
     overflow: hidden;
     width: 100vw;
     height: 100vh;
-    touch-action: manipulation; /* 더블 탭 확대 방지 */
+    touch-action: manipulation;
+    /* 더블 탭 확대 방지 */
+    /* 전체 복사 방지 */
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -webkit-touch-callout: none;
 }
 
 /* 화면 전환 */
@@ -489,21 +496,25 @@ body {
 .achievements-earned {
     margin-bottom: 20px;
     min-height: 50px;
-    display: none; /* 기본적으로 숨김 */
+    display: none;
+    /* 기본적으로 숨김 */
 }
 
 #gameover-screen.active .achievements-earned {
-    display: block; /* 게임 오버 화면이 활성화되면 표시 */
+    display: block;
+    /* 게임 오버 화면이 활성화되면 표시 */
 }
 
 .gameover-buttons {
-    display: none; /* 기본적으로 숨김 */
+    display: none;
+    /* 기본적으로 숨김 */
     gap: 15px;
     justify-content: center;
 }
 
 #gameover-screen.active .gameover-buttons {
-    display: flex; /* 게임 오버 화면이 활성화되면 표시 */
+    display: flex;
+    /* 게임 오버 화면이 활성화되면 표시 */
 }
 
 /* 모달 */
@@ -1103,6 +1114,7 @@ body {
         opacity: 0;
     }
 }
+
 /* Admin Select Boxes */
 .admin-select {
     width: 100%;
