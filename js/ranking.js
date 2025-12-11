@@ -164,14 +164,11 @@ window.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', openRankingModal);
     }
 
-    // 게임 오버 화면의 랭킹 등록 버튼도 처리
-    const gameoverRankingBtns = document.querySelectorAll('.gameover-buttons button');
-    gameoverRankingBtns.forEach(b => {
-        if (b.textContent.includes('랭킹')) {
-            b.onclick = null; // 기존 인라인 제거
-            b.addEventListener('click', openRankingModal);
-        }
-    });
+    // 게임 오버 화면의 랭킹 등록 버튼
+    const registerRankingBtn = document.getElementById('register-ranking-btn');
+    if (registerRankingBtn) {
+        registerRankingBtn.addEventListener('click', openRankingModal);
+    }
 
     // 전역 노출 유지 (비상용)
     window.openRankingModal = openRankingModal;
