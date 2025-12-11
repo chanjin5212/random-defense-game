@@ -367,12 +367,12 @@ function initGachaUI() {
         if (count > 0) {
             let sellInterval = null;
             let sellTimeout = null;
-            let sellSpeed = 200;
+            let sellSpeed = 40; // 200 -> 40 (5배 빠르게)
 
             const startSelling = () => {
                 sellTower(towerType, rarity);
                 sellTimeout = setTimeout(() => {
-                    sellSpeed = 200;
+                    sellSpeed = 40; // 200 -> 40 (5배 빠르게)
                     sellInterval = setInterval(() => {
                         if (getTowerCount(towerType, rarity) <= 0) {
                             if (sellTimeout) clearTimeout(sellTimeout);
@@ -380,8 +380,8 @@ function initGachaUI() {
                             return;
                         }
                         sellTower(towerType, rarity);
-                        if (sellSpeed > 50) {
-                            sellSpeed -= 10;
+                        if (sellSpeed > 5) { // 50 -> 10 (5배 빠르게)
+                            sellSpeed -= 1; // 10 -> 2 (5배 빠르게)
                             clearInterval(sellInterval);
                             sellInterval = setInterval(() => {
                                 if (getTowerCount(towerType, rarity) <= 0) return;
@@ -389,13 +389,13 @@ function initGachaUI() {
                             }, sellSpeed);
                         }
                     }, sellSpeed);
-                }, 200);
+                }, 10); // 200 -> 40 (5배 빠르게)
             };
 
             const stopSelling = () => {
                 if (sellTimeout) clearTimeout(sellTimeout);
                 if (sellInterval) clearInterval(sellInterval);
-                sellSpeed = 200;
+                sellSpeed = 10; // 200 -> 40 (5배 빠르게)
             };
 
             btn.addEventListener('mousedown', (e) => { e.preventDefault(); startSelling(); });
