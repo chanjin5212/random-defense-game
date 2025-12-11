@@ -27,6 +27,30 @@
         </div>
     </div>
 
+    <!-- 게임 오버 화면 -->
+    <div id="gameover-screen" class="screen">
+        <div class="lobby-container">
+            <h1 class="game-title" style="color: #EF4444;">게임 오버</h1>
+
+            <div style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <div style="margin-bottom: 15px;">
+                    <span style="color: #F1F5F9; font-size: 14px;">도달 라운드</span>
+                    <div style="color: #FBBF24; font-size: 32px; font-weight: bold;" id="final-round">0</div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <span style="color: #F1F5F9; font-size: 14px;">처치 수</span>
+                    <div style="color: #10B981; font-size: 24px; font-weight: bold;" id="final-kills">0</div>
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" id="register-ranking-btn"
+                style="background: #fbbf24; color: black; font-weight: bold; width: 100%; margin-bottom: 10px;">🏆 랭킹
+                등록</button>
+            <button class="btn btn-primary" id="restart-btn" style="width: 100%; margin-bottom: 10px;">다시하기</button>
+            <button class="btn btn-secondary" id="lobby-btn" style="width: 100%;">로비로</button>
+        </div>
+    </div>
+
     <!-- 게임 화면 (모바일 레이아웃) -->
     <div id="game-screen" class="screen">
         <div class="mobile-game-container">

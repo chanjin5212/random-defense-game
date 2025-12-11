@@ -149,7 +149,7 @@ const CONFIG = {
         5: 'NORMAL', 6: 'ARMORED', 7: 'NORMAL', 8: 'SWIFT',
         9: 'NORMAL', 10: 'TANK', 11: 'NORMAL', 12: 'SWIFT',
         13: 'NORMAL', 14: 'ARMORED', 15: 'NORMAL', 16: 'SWIFT',
-        17: 'NORMAL', 18: 'REGENERATOR', 19: 'NORMAL'
+        17: 'NORMAL', 18: 'NORMAL', 19: 'NORMAL'
         // 20은 보스
     },
 

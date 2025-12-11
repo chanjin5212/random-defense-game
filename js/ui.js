@@ -266,34 +266,11 @@ function showGameOver() {
 
     const finalRoundEl = document.getElementById('final-round');
     const finalKillsEl = document.getElementById('final-kills');
-    const finalXpEl = document.getElementById('final-xp');
-    const finalStonesEl = document.getElementById('final-stones');
 
     if (finalRoundEl) finalRoundEl.textContent = window.game.currentRound;
     if (finalKillsEl) finalKillsEl.textContent = window.game.killCount;
 
-    const xpGained = window.game.currentRound * CONFIG.BATTLEPASS.XP_PER_ROUND;
-    if (finalXpEl) finalXpEl.textContent = '+' + xpGained;
-
-    if (window.battlePass) {
-        window.battlePass.addXP(xpGained);
-    }
-
-    const stonesGained = Math.floor(window.game.currentRound / 10);
-    if (finalStonesEl) finalStonesEl.textContent = '+' + stonesGained;
-
-    if (window.economy) {
-        window.economy.addUpgradeStones(stonesGained);
-    }
-
-    const bestRound = 0; // parseInt(localStorage.getItem('bestRound') || 0);
-    if (window.game.currentRound > bestRound) {
-        // localStorage.setItem('bestRound', window.game.currentRound);
-        // showToast('새로운 최고 기록!', 'success');
-    }
-
     showScreen('gameover-screen');
-    updateLobbyUI();
 }
 
 function startGame() {
