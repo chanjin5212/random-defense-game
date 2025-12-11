@@ -80,7 +80,7 @@ const CONFIG = {
     // 몬스터 스케일링
     MONSTER: {
         BASE_HP: 200,
-        HP_SCALING: 1.125, // 1.15 -> 1.125 (하향 조정)
+        HP_SCALING: 1.0975,
         BASE_SPEED: 1.0,
         MAX_SPEED: 2.5,
         BASE_GOLD: 1, // 마리당 1원
