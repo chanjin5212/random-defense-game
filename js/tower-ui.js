@@ -1,18 +1,87 @@
 // 타워 UI 함수 (새 레이아웃용)
 
 // 이벤트 위임 방식으로 판매 버튼 처리 (중복 방지 및 동적 요소 대응)
-document.addEventListener('click', function (e) {
+// 길게 누르기 기능 추가
+let sellInterval = null;
+let sellTimeout = null;
+let sellSpeed = 200; // 초기 판매 속도 (ms)
+
+// 판매 시작
+function startSelling(x, y, index) {
+    // 첫 판매
+    sellTowerAtIndex(x, y, index);
+
+    // 연속 판매 시작 (200ms 후부터)
+    sellTimeout = setTimeout(() => {
+        sellSpeed = 200;
+        sellInterval = setInterval(() => {
+            sellTowerAtIndex(x, y, index);
+
+            // 속도 점점 빨라지게 (최소 50ms)
+            if (sellSpeed > 50) {
+                sellSpeed -= 10;
+                clearInterval(sellInterval);
+                sellInterval = setInterval(() => {
+                    sellTowerAtIndex(x, y, index);
+                }, sellSpeed);
+            }
+        }, sellSpeed);
+    }, 200);
+}
+
+// 판매 중지
+function stopSelling() {
+    if (sellTimeout) {
+        clearTimeout(sellTimeout);
+        sellTimeout = null;
+    }
+    if (sellInterval) {
+        clearInterval(sellInterval);
+        sellInterval = null;
+    }
+    sellSpeed = 200;
+}
+
+// 마우스/터치 다운 이벤트
+document.addEventListener('mousedown', function (e) {
     const btn = e.target.closest('.btn-sell');
     if (!btn) return;
 
-    e.stopPropagation(); // 버튼 클릭 시 다른 이벤트 간섭 차단
+    e.preventDefault();
+    e.stopPropagation();
 
     const x = parseInt(btn.dataset.x, 10);
     const y = parseInt(btn.dataset.y, 10);
     const index = parseInt(btn.dataset.index, 10);
 
     if (!isNaN(x) && !isNaN(y) && !isNaN(index)) {
-        sellTowerAtIndex(x, y, index);
+        startSelling(x, y, index);
+    }
+});
+
+document.addEventListener('touchstart', function (e) {
+    const btn = e.target.closest('.btn-sell');
+    if (!btn) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    const x = parseInt(btn.dataset.x, 10);
+    const y = parseInt(btn.dataset.y, 10);
+    const index = parseInt(btn.dataset.index, 10);
+
+    if (!isNaN(x) && !isNaN(y) && !isNaN(index)) {
+        startSelling(x, y, index);
+    }
+}, { passive: false });
+
+// 마우스/터치 업 이벤트 (전역)
+document.addEventListener('mouseup', stopSelling);
+document.addEventListener('touchend', stopSelling);
+document.addEventListener('touchcancel', stopSelling);
+document.addEventListener('mouseleave', function (e) {
+    if (e.target.closest('.btn-sell')) {
+        stopSelling();
     }
 });
 
