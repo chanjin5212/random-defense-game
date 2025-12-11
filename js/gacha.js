@@ -262,7 +262,7 @@ function initGachaUI() {
     if (gachaButtonGrid && !document.getElementById('tower-sell-btn')) {
         const sellBtn = document.createElement('button');
         sellBtn.id = 'tower-sell-btn';
-        sellBtn.className = 'btn-gacha btn-sell';
+        sellBtn.className = 'btn-gacha';
         sellBtn.innerHTML = '<span>타워 판매</span>';
         sellBtn.addEventListener('click', () => {
             showTowerSellPanel();
