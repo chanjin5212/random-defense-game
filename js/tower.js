@@ -667,6 +667,9 @@ class Tower {
         const quality = CONFIG.GRAPHICS.PARTICLE_QUALITY;
         if (quality === 'off') return;
 
+        // 파티클 효과 완전히 비활성화
+        return;
+
         const particleCount = quality === 'low' ? 2 : 8;
 
         targets.forEach(target => {
@@ -710,6 +713,9 @@ class Tower {
 
         const quality = CONFIG.GRAPHICS.PARTICLE_QUALITY;
         if (quality === 'off') return;
+
+        // 파티클 효과 완전히 비활성화
+        return;
 
         const count = quality === 'low' ? 5 : 20;
 
