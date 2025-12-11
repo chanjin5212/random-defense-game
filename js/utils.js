@@ -318,7 +318,7 @@ class Projectile {
             this.speed = 4; // 웅장하게 천천히
             this.size = 80; // 매우 거대함
         } else {
-            this.speed = 10;
+            this.speed = 30; // 10 -> 30 (3배 빠르게, 렉 감소)
             this.size = 5;
         }
 

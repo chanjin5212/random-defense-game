@@ -428,6 +428,12 @@ class Game {
 
     updateProjectiles(deltaTime) {
         this.projectiles.forEach(projectile => {
+            // 타겟이 죽었으면 투사체 즉시 제거
+            if (projectile.target && !projectile.target.alive) {
+                projectile.dead = true;
+                return;
+            }
+
             projectile.update();
 
             // 타겟 도달 체크
