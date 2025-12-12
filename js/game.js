@@ -123,7 +123,8 @@ class Game {
                     this.moveState.sourceX, this.moveState.sourceY,
                     gridX, gridY,
                     this.moveState.towerKey, this.moveState.rarity,
-                    this.moveState.count
+                    this.moveState.count,
+                    this.moveState.isTrinity || false
                 );
 
                 if (moved > 0) {
@@ -180,14 +181,15 @@ class Game {
         }
     }
 
-    startManualMove(sourceX, sourceY, towerKey, rarity, count) {
+    startManualMove(sourceX, sourceY, towerKey, rarity, count, isTrinity = false) {
         this.moveState = {
             active: true,
             sourceX,
             sourceY,
             towerKey,
             rarity,
-            count
+            count,
+            isTrinity
         };
         showToast('이동할 칸을 선택하세요', 'info');
 

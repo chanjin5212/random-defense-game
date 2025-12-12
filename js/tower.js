@@ -4,22 +4,39 @@ class Tower {
     constructor(towerKey, rarity, gridX, gridY, slotIndex) {
         this.towerKey = towerKey;
         this.towerData = CONFIG.TOWERS[towerKey];
+        this.isTrinity = (towerKey === 'TRINITY');
         this.rarity = rarity;
         this.rarityData = CONFIG.RARITY[rarity];
         this.gridX = gridX;
         this.gridY = gridY;
         this.slotIndex = slotIndex;
 
-        // 스탯 계산 (등급 배수 + 타워 강화 보너스 적용)
-        let damageMultiplier = this.rarityData.multiplier;
+        // 기본 데미지 계산 (등급 배수만 적용)
+        this.damage = this.towerData.baseDamage * this.rarityData.multiplier;
 
-        // 타워 강화 보너스 적용 (타워 종류별)
+        // 강화 보너스 적용 (Trinity는 가장 높은 강화 레벨 사용)
         if (window.towerUpgradeManager) {
-            const upgradeMultiplier = window.towerUpgradeManager.getDamageMultiplier(this.towerKey);
-            damageMultiplier *= upgradeMultiplier;
-        }
+            let upgradeKey = this.towerKey;
 
-        this.damage = this.towerData.baseDamage * damageMultiplier;
+            if (this.isTrinity) {
+                const standardLevel = window.towerUpgradeManager.upgrades['STANDARD']?.level || 0;
+                const splashLevel = window.towerUpgradeManager.upgrades['SPLASH']?.level || 0;
+                const sniperLevel = window.towerUpgradeManager.upgrades['SNIPER']?.level || 0;
+
+                const maxLevel = Math.max(standardLevel, splashLevel, sniperLevel);
+
+                if (sniperLevel === maxLevel) {
+                    upgradeKey = 'SNIPER';
+                } else if (splashLevel === maxLevel) {
+                    upgradeKey = 'SPLASH';
+                } else {
+                    upgradeKey = 'STANDARD';
+                }
+            }
+
+            const upgradeMultiplier = window.towerUpgradeManager.getDamageMultiplier(upgradeKey);
+            this.damage *= upgradeMultiplier;
+        }
         this.attackSpeed = this.towerData.attackSpeed;
         this.range = this.towerData.range;
         this.type = this.towerData.type;
@@ -79,16 +96,35 @@ class Tower {
     }
 
     updateStats() {
-        // 스탯 재계산 (등급 배수 + 타워 강화 보너스 적용)
-        let damageMultiplier = this.rarityData.multiplier;
+        // Trinity 타워는 가장 높은 강화 레벨 사용
+        let upgradeKey = this.isTrinity ? 'STANDARD' : this.towerKey;  // ✅ 기본값 설정
 
-        // 타워 강화 보너스 적용 (타워 종류별)
-        if (window.towerUpgradeManager) {
-            const upgradeMultiplier = window.towerUpgradeManager.getDamageMultiplier(this.towerKey);
-            damageMultiplier *= upgradeMultiplier;
+        if (this.isTrinity && window.towerUpgradeManager) {
+            const standardLevel = window.towerUpgradeManager.upgrades['STANDARD']?.level || 0;
+            const splashLevel = window.towerUpgradeManager.upgrades['SPLASH']?.level || 0;
+            const sniperLevel = window.towerUpgradeManager.upgrades['SNIPER']?.level || 0;
+
+            const maxLevel = Math.max(standardLevel, splashLevel, sniperLevel);
+
+            if (sniperLevel === maxLevel) {
+                upgradeKey = 'SNIPER';
+            } else if (splashLevel === maxLevel) {
+                upgradeKey = 'SPLASH';
+            } else {
+                upgradeKey = 'STANDARD';
+            }
         }
 
-        this.damage = this.towerData.baseDamage * damageMultiplier;
+        // 기본 데미지 계산
+        const baseDamage = this.towerData.baseDamage * this.rarityData.multiplier;
+
+        // 강화 보너스 적용
+        let damageMultiplier = 1.0;
+        if (window.towerUpgradeManager) {
+            damageMultiplier = window.towerUpgradeManager.getDamageMultiplier(upgradeKey);
+        }
+
+        this.damage = baseDamage * damageMultiplier;
     }
 
     update(deltaTime, monsters) {
@@ -752,6 +788,78 @@ class Tower {
     }
 
     draw(ctx) {
+        // Trinity 타워 특별 렌더링
+        if (this.isTrinity) {
+            ctx.save();
+
+            // 공격 애니메이션
+            if (this.attackAnimation > 0) {
+                ctx.shadowBlur = 30;
+                ctx.shadowColor = '#FFFFFF';
+                const scale = 1 + (this.attackAnimation * 0.2);
+                ctx.translate(this.x, this.y);
+                ctx.scale(scale, scale);
+                ctx.translate(-this.x, -this.y);
+            }
+
+            // 회전 애니메이션
+            const time = Date.now() / 1000;
+            const rotation = time * 0.5;
+
+            ctx.translate(this.x, this.y);
+            ctx.rotate(rotation);
+
+            // 별 그리기 (5각 별)
+            const outerRadius = 18;
+            const innerRadius = 8;
+            const spikes = 5;
+
+            // 무지개 그라데이션 (방사형)
+            const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, outerRadius);
+            gradient.addColorStop(0, '#FFFFFF');
+            gradient.addColorStop(0.2, '#FF0000');
+            gradient.addColorStop(0.4, '#FFFF00');
+            gradient.addColorStop(0.6, '#00FF00');
+            gradient.addColorStop(0.8, '#0000FF');
+            gradient.addColorStop(1, '#FF00FF');
+
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+
+            for (let i = 0; i < spikes * 2; i++) {
+                const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                const angle = (Math.PI / spikes) * i - Math.PI / 2;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+
+            ctx.closePath();
+            ctx.fill();
+
+            // 테두리 (금색)
+            ctx.strokeStyle = '#FFD700';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 중앙 빛나는 점
+            const pulseGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 4);
+            pulseGradient.addColorStop(0, '#FFFFFF');
+            pulseGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = pulseGradient;
+            ctx.beginPath();
+            ctx.arc(0, 0, 4 + Math.sin(time * 3) * 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+            return;  // Trinity 타워는 여기서 렌더링 종료
+        }
+
         ctx.save();
 
         // 공격 애니메이션 효과 (공통)

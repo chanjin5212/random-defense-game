@@ -51,6 +51,7 @@ class Monster {
         this.hp = this.maxHP;
         this.progress = 0; // 0 ~ 1 (경로 진행도)
         this.alive = true;
+        this.goldAwarded = false; // 골드 지급 여부 플래그 (중복 방지)
 
         // 상태 효과
         this.statusEffects = {
@@ -279,6 +280,19 @@ class Monster {
 
     die() {
         this.alive = false;
+
+        // 골드 지급 (중복 방지)
+        if (!this.goldAwarded && window.game) {
+            window.game.addGold(this.goldReward);
+            window.game.killCount++;
+
+            // 보스 킬 카운트
+            if (this.isBoss) {
+                window.game.bossKills++;
+            }
+
+            this.goldAwarded = true;
+        }
 
         // 분열 능력 (보스)
         if (this.isBoss && this.abilities.includes('split')) {

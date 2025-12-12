@@ -112,22 +112,24 @@ class TowerUpgradeManager {
             SNIPER: '#EF4444'    // 빨간색
         };
 
-        Object.keys(CONFIG.TOWER_UPGRADES).forEach(key => {
-            const config = CONFIG.TOWER_UPGRADES[key];
-            const level = this.upgrades[key] ? this.upgrades[key].level : 0;
-            const cost = this.getUpgradeCost(key);
-            const bonus = this.getDamageBonus(key);
+        Object.keys(CONFIG.TOWER_UPGRADES)
+            .filter(key => key !== 'TRINITY')
+            .forEach(key => {
+                const config = CONFIG.TOWER_UPGRADES[key];
+                const level = this.upgrades[key] ? this.upgrades[key].level : 0;
+                const cost = this.getUpgradeCost(key);
+                const bonus = this.getDamageBonus(key);
 
-            result.push({
-                key: key,
-                name: config.name,
-                color: typeColors[key] || '#FFFFFF',
-                level: level,
-                maxLevel: config.maxLevel,
-                cost: cost,
-                damageBonus: bonus
+                result.push({
+                    key: key,
+                    name: config.name,
+                    color: typeColors[key] || '#FFFFFF',
+                    level: level,
+                    maxLevel: config.maxLevel,
+                    cost: cost,
+                    damageBonus: bonus
+                });
             });
-        });
 
         return result;
     }
@@ -291,7 +293,10 @@ function performUpgrade(key) {
         if (window.game && window.game.towerManager) {
             const towers = window.game.towerManager.getAllTowers();
             towers.forEach(t => {
-                if (t.towerKey === key && typeof t.updateStats === 'function') {
+                // Trinity 타워는 모든 타워 강화에 영향을 받음
+                const shouldUpdate = t.isTrinity || t.towerKey === key;
+
+                if (shouldUpdate && typeof t.updateStats === 'function') {
                     t.updateStats();
                 }
             });

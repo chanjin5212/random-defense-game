@@ -29,6 +29,46 @@ const CONFIG = {
         SELL_REFUND_PERCENT: 0.5 // 판매 시 50% 환불
     },
 
+    // 타워 교환 시스템 (레전드 이상)
+    TOWER_EXCHANGE: {
+        LEGENDARY: { cost: 500, successRate: 0.7 },      // 500골드, 70% 성공
+        MYTHIC: { cost: 1000, successRate: 0.7 },        // 1,000골드, 70% 성공
+        DIVINE: { cost: 2000, successRate: 0.7 },        // 2,000골드, 70% 성공
+        TRANSCENDENT: { cost: 4000, successRate: 0.7 }   // 4,000골드, 70% 성공
+    },
+
+    // 타워 합체 시스템 (레전드 이상)
+    TOWER_FUSION: {
+        LEGENDARY: {
+            fusionCost: 2000,           // 합체 비용 (골드)
+            successRate: 0.7,           // 70% 성공률
+            damageMultiplier: 1.5,      // 저격 타워 대비
+            attackSpeedMultiplier: 0.8, // 일반 타워 대비 (느림)
+            chainMultiplier: 0.5        // 스플래시 연쇄의 50%
+        },
+        MYTHIC: {
+            fusionCost: 4000,
+            successRate: 0.7,
+            damageMultiplier: 2.0,
+            attackSpeedMultiplier: 0.8,
+            chainMultiplier: 0.5
+        },
+        DIVINE: {
+            fusionCost: 10000,
+            successRate: 0.7,
+            damageMultiplier: 4.0,
+            attackSpeedMultiplier: 0.8,
+            chainMultiplier: 0.5
+        },
+        TRANSCENDENT: {
+            fusionCost: 10000,
+            successRate: 0.7,
+            damageMultiplier: 8.0,
+            attackSpeedMultiplier: 0.8,
+            chainMultiplier: 0.5
+        }
+    },
+
     // 등급 시스템
     RARITY: {
         COMMON: { name: '일반', multiplier: 1.0, color: '#94A3B8', probability: 0.50, sellPrice: 5 },
@@ -42,7 +82,7 @@ const CONFIG = {
         TRANSCENDENT: { name: '초월', multiplier: 5000.0, color: '#06B6D4', probability: 0.00019, sellPrice: null } // 판매 불가
     },
 
-    // 타워 정의 (3종류)
+    // 타워 정의 (4종류)
     TOWERS: {
         STANDARD: {
             id: 1,
@@ -74,18 +114,36 @@ const CONFIG = {
             range: 700,
             description: '강력한 단일 공격',
             effect: 'sniper'
+        },
+        TRINITY: {
+            id: 4,
+            name: '트리니티 타워',
+            type: 'attack',
+            baseDamage: 150,  // 저격(25)보다 높은 기본 데미지
+            attackSpeed: 1.0,
+            range: 500,
+            effect: 'trinity',
+            description: '3가지 타워의 힘을 융합한 궁극의 타워'
         }
     },
 
     // 몬스터 스케일링
     MONSTER: {
         BASE_HP: 200,
-        HP_SCALING: 1.0975,
+        HP_SCALING: 1.0975, // 기본 스케일링 (사용 안 함, 하위 호환용)
         BASE_SPEED: 1.0,
         MAX_SPEED: 2.5,
         BASE_GOLD: 1, // 마리당 1원
         GOLD_SCALING: 1, // 스케일링 없음
-        ROUND_BONUS: 20 // 라운드 시작 시 20원 보너스
+        ROUND_BONUS: 20, // 라운드 시작 시 20원 보너스
+
+        // HP 스케일링 단계별 설정 (라운드별로 지수 감소)
+        HP_SCALING_TIERS: [
+            { maxRound: 50, exponent: 1.0975 },      // 초반: 빠른 성장
+            { maxRound: 100, exponent: 1.07 },       // 중반: 중간 성장
+            { maxRound: 200, exponent: 1.04 },       // 후반: 느린 성장
+            { maxRound: Infinity, exponent: 1.02 }   // 극후반: 매우 느린 성장
+        ]
     },
 
     // 몬스터 타입
@@ -235,6 +293,13 @@ const CONFIG = {
             costPerLevel: 10, // 레벨당 10원 증가
             maxLevel: 100,
             damagePerLevel: 100
+        },
+        TRINITY: {
+            name: '트리니티 타워 강화',
+            baseCost: 20,
+            costPerLevel: 10,
+            maxLevel: 0,  // 직접 강화 불가
+            damagePerLevel: 0
         }
     },
 
@@ -381,5 +446,5 @@ Object.keys(CONFIG.RARITY).forEach(key => {
     }
 });
 
-// 타워 배열 (가챠용)
-const TOWER_ARRAY = Object.keys(CONFIG.TOWERS);
+// 타워 배열 (가챠용) - TRINITY는 합체로만 획득 가능하므로 제외
+const TOWER_ARRAY = Object.keys(CONFIG.TOWERS).filter(key => key !== 'TRINITY');

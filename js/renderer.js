@@ -426,35 +426,70 @@ class Renderer {
     }
 
     drawBeam(beam) {
-        const { x1, y1, x2, y2, color, width, life, maxLife } = beam;
+        const { x1, y1, x2, y2, color, width, life, maxLife, isRainbow } = beam;
         const alpha = Math.min(1, life / maxLife);
 
         this.ctx.save();
         this.ctx.globalAlpha = alpha;
         this.ctx.globalCompositeOperation = 'lighter'; // 빛나는 효과
 
-        // 메인 빔 (외부 광선)
-        this.ctx.strokeStyle = color;
-        this.ctx.lineWidth = width;
-        this.ctx.lineCap = 'round';
-        this.ctx.shadowBlur = 10;
-        this.ctx.shadowColor = color;
+        // 무지개 빔 (Trinity 타워 전용)
+        if (isRainbow) {
+            // 무지개 그라데이션 생성
+            const gradient = this.ctx.createLinearGradient(x1, y1, x2, y2);
+            gradient.addColorStop(0, '#FF0000');    // 빨강
+            gradient.addColorStop(0.25, '#FFFF00'); // 노랑
+            gradient.addColorStop(0.5, '#00FF00');  // 초록
+            gradient.addColorStop(0.75, '#0000FF'); // 파랑
+            gradient.addColorStop(1, '#FF00FF');    // 보라
 
-        this.ctx.beginPath();
-        this.ctx.moveTo(x1, y1);
-        this.ctx.lineTo(x2, y2);
-        this.ctx.stroke();
+            // 외부 광선 (무지개)
+            this.ctx.strokeStyle = gradient;
+            this.ctx.lineWidth = width;
+            this.ctx.lineCap = 'round';
+            this.ctx.shadowBlur = 15;
+            this.ctx.shadowColor = '#FFFFFF';
 
-        // 코어 빔 (흰색)
-        this.ctx.strokeStyle = '#FFFFFF';
-        this.ctx.lineWidth = width / 2;
-        this.ctx.shadowBlur = 5;
-        this.ctx.shadowColor = '#FFFFFF';
+            this.ctx.beginPath();
+            this.ctx.moveTo(x1, y1);
+            this.ctx.lineTo(x2, y2);
+            this.ctx.stroke();
 
-        this.ctx.beginPath();
-        this.ctx.moveTo(x1, y1);
-        this.ctx.lineTo(x2, y2);
-        this.ctx.stroke();
+            // 코어 빔 (흰색)
+            this.ctx.strokeStyle = '#FFFFFF';
+            this.ctx.lineWidth = width / 2;
+            this.ctx.shadowBlur = 10;
+            this.ctx.shadowColor = '#FFFFFF';
+
+            this.ctx.beginPath();
+            this.ctx.moveTo(x1, y1);
+            this.ctx.lineTo(x2, y2);
+            this.ctx.stroke();
+        } else {
+            // 일반 빔 (기존 로직)
+            // 메인 빔 (외부 광선)
+            this.ctx.strokeStyle = color;
+            this.ctx.lineWidth = width;
+            this.ctx.lineCap = 'round';
+            this.ctx.shadowBlur = 10;
+            this.ctx.shadowColor = color;
+
+            this.ctx.beginPath();
+            this.ctx.moveTo(x1, y1);
+            this.ctx.lineTo(x2, y2);
+            this.ctx.stroke();
+
+            // 코어 빔 (흰색)
+            this.ctx.strokeStyle = '#FFFFFF';
+            this.ctx.lineWidth = width / 2;
+            this.ctx.shadowBlur = 5;
+            this.ctx.shadowColor = '#FFFFFF';
+
+            this.ctx.beginPath();
+            this.ctx.moveTo(x1, y1);
+            this.ctx.lineTo(x2, y2);
+            this.ctx.stroke();
+        }
 
         this.ctx.restore();
     }

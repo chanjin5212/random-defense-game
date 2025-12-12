@@ -134,6 +134,18 @@
                             </button>
                         </div>
                     </div>
+
+                    <div class="panel-section">
+                        <h3>타워 특수 기능</h3>
+                        <div class="button-grid">
+                            <button class="btn-special" id="tower-exchange-btn">
+                                <span>🔄 타워 교환</span>
+                            </button>
+                            <button class="btn-special" id="tower-fusion-btn">
+                                <span>🔮 타워 합체</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- 칸 선택 뷰 (타워 관리) -->
@@ -233,6 +245,48 @@
         </div>
     </div>
 
+    <div id="tower-exchange-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔄 타워 교환</h2>
+                <button class="close-btn" data-modal="tower-exchange-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div
+                    style="margin-bottom: 20px; padding: 15px; background: rgba(251, 191, 36, 0.1); border-left: 3px solid #FBBF24; border-radius: 5px;">
+                    <p style="margin: 0; color: #FBBF24; font-size: 0.9em;">
+                        💡 레전드 이상 타워를 다른 타입으로 교환할 수 있습니다.<br>
+                        성공 확률: 70% | 실패 시 골드만 소모
+                    </p>
+                </div>
+                <div id="exchange-tower-list" class="tower-list">
+                    <!-- 동적으로 생성 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tower-fusion-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🔮 타워 합체</h2>
+                <button class="close-btn" data-modal="tower-fusion-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div
+                    style="margin-bottom: 20px; padding: 15px; background: rgba(251, 191, 36, 0.1); border-left: 3px solid #FBBF24; border-radius: 5px;">
+                    <p style="margin: 0; color: #FBBF24; font-size: 0.9em;">
+                        💡 같은 등급의 서로 다른 타입 타워 3개를 합쳐 트리니티 타워를 생성합니다.<br>
+                        성공 확률: 70% | 실패 시 골드 소모 + 랜덤 1개 타워 소실
+                    </p>
+                </div>
+                <div id="fusion-tower-list" class="tower-list">
+                    <!-- 동적으로 생성 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="battlepass-modal" class="modal">
         <div class="modal-content large">
             <div class="modal-header">
@@ -306,6 +360,8 @@
     <!-- JavaScript 파일들 -->
     <script src="js/config.js?v=final3"></script>
     <script src="js/utils.js?v=final3"></script>
+    <script src="js/tower-exchange.js"></script>
+    <script src="js/tower-fusion.js"></script>
     <script src="js/sound.js"></script>
     <script src="js/no-copy.js"></script>
     <script src="js/monster.js?v=final3"></script>

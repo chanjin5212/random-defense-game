@@ -80,7 +80,8 @@ document.addEventListener('mouseup', stopSelling);
 document.addEventListener('touchend', stopSelling);
 document.addEventListener('touchcancel', stopSelling);
 document.addEventListener('mouseleave', function (e) {
-    if (e.target.closest('.btn-sell')) {
+    // e.target이 유효한 DOM 요소인지 확인
+    if (e.target && typeof e.target.closest === 'function' && e.target.closest('.btn-sell')) {
         stopSelling();
     }
 });
@@ -171,14 +172,19 @@ function updateCellTowerList() {
     // 타워 요약 (Summary View)
     const summary = {};
     towers.forEach(tower => {
-        const key = `${tower.rarityData.name} ${tower.towerData.name}`;
+        // Trinity 타워는 별도로 구분
+        const key = tower.isTrinity
+            ? `${tower.rarityData.name} 트리니티 타워`
+            : `${tower.rarityData.name} ${tower.towerData.name}`;
+
         if (!summary[key]) {
             summary[key] = {
                 count: 0,
                 color: tower.rarityData.color,
                 name: key,
                 towerKey: tower.towerKey,
-                rarity: tower.rarity
+                rarity: tower.rarity,
+                isTrinity: tower.isTrinity || false
             };
         }
         summary[key].count++;
@@ -210,11 +216,17 @@ function updateCellTowerList() {
         })
         .forEach(item => {
             // 공격력 정보 계산
-            const towerRef = towers.find(t => t.towerKey === item.towerKey && t.rarity === item.rarity);
+            const towerRef = item.isTrinity
+                ? towers.find(t => t.isTrinity && t.rarity === item.rarity)
+                : towers.find(t => t.towerKey === item.towerKey && t.rarity === item.rarity && !t.isTrinity);
+
             let dmgInfo = '';
             if (towerRef) {
-                // 기본 데미지 (CONFIG 참조)
-                const baseDmg = CONFIG.TOWERS[item.towerKey].baseDamage * towerRef.rarityData.multiplier;
+                // Trinity 타워는 towerData.baseDamage 사용, 일반 타워는 CONFIG 참조
+                const baseDmg = towerRef.isTrinity
+                    ? towerRef.towerData.baseDamage * towerRef.rarityData.multiplier
+                    : CONFIG.TOWERS[item.towerKey].baseDamage * towerRef.rarityData.multiplier;
+
                 // 현재 최종 데미지
                 const currentDmg = towerRef.damage;
                 // 계정 스탯 등 추가 보정 적용된 최종 예상 데미지 (UI 표시용)
@@ -230,9 +242,13 @@ function updateCellTowerList() {
                 `;
             }
 
-            // 클릭 시 이동 모드 진입
+            // 클릭 시 이동 모드 진입 - Trinity 타워는 isTrinity 플래그 전달
+            const moveParams = item.isTrinity
+                ? `'${item.towerKey}', '${item.rarity}', ${item.count}, true`
+                : `'${item.towerKey}', '${item.rarity}', ${item.count}`;
+
             html += `
-                <div onclick="initiateManualMove('${item.towerKey}', '${item.rarity}', ${item.count})" 
+                <div onclick="initiateManualMove(${moveParams})" 
                      style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; border-left: 3px solid ${item.color}; cursor: pointer; margin-bottom: 5px;">
                     <div>
                         <span style="color: ${item.color}; font-weight: bold; font-size: 0.9em; display: block;">${item.name}</span>
@@ -273,7 +289,7 @@ function sellTowerAtIndex(x, y, index) {
     }
 }
 
-function initiateManualMove(towerKey, rarity, maxCount) {
+function initiateManualMove(towerKey, rarity, maxCount, isTrinity = false) {
     if (!window.game || !window.game.towerManager.selectedCell) return;
 
     const countStr = prompt(`이동할 수량을 입력하세요 (최대 ${maxCount}개)`, maxCount);
@@ -293,7 +309,8 @@ function initiateManualMove(towerKey, rarity, maxCount) {
         selectedCell.y,
         towerKey,
         rarity,
-        moveCount
+        moveCount,
+        isTrinity
     );
 }
 
